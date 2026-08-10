@@ -27,11 +27,16 @@
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
 
+  <!-- Single-file compression is deliberately off. Compressed assemblies are inflated
+       into private, unshareable pages at startup — measured at ~70 MB private working
+       set idle versus ~8 MB uncompressed, where assemblies map file-backed straight
+       from the bundle. For an app that sits in the tray all day, resident memory is
+       the cost that matters; the larger executable is paid once on disk. -->
   <PropertyGroup>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>embedded</DebugType>
   </PropertyGroup>

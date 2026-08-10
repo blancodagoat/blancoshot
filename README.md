@@ -1,7 +1,16 @@
+<div align="center">
+
 # BlancoShot
 
-A small Windows screenshot utility that does two things: region capture and active-display
-capture. No uploads, no editor, no telemetry, no update checker.
+**Region and display capture for Windows that stays out of your way.**
+
+Tray-only · ~8 MB of RAM · no uploads · no editor · no telemetry · no update checker
+
+[![build](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml)
+
+</div>
+
+---
 
 | | |
 |---|---|
@@ -29,6 +38,28 @@ appears inside its successor.
 The app has no main window. The tray icon is the entry point — double-click for settings,
 right-click for capture actions, open/copy last capture, and the screenshots folder.
 
+## Footprint
+
+Idle in the tray, which is where a screenshot tool spends its life:
+
+| Tool | Idle memory |
+|---|---|
+| **BlancoShot** | **~8 MB** |
+| Greenshot | 15–30 MB |
+| ShareX | 50–300 MB, version-dependent |
+| Snagit | 200+ MB |
+| FireShot | runs inside your browser, so its cost hides in the browser's |
+
+BlancoShot's figure is measured: the private working set (Task Manager's "Memory" column)
+of the published Release build, idle in the tray on Windows 11. The other figures are as
+reported by users and reviews — [Greenshot's FAQ](https://getgreenshot.org/faq/greenshot-uses-x-mb-of-my-ram-why-is-that/),
+[ShareX's issue tracker](https://github.com/ShareX/ShareX/issues/3179), and
+[side-by-side reviews](https://www.screensnap.pro/blog/sharex-vs-greenshot) — and vary
+with version and configuration, so read them as ballpark rather than benchmark.
+
+Memory spikes while a capture is in flight (the frame exists as a bitmap) and returns to
+baseline when the card is gone.
+
 ## Building
 
 Requires the .NET 10 SDK.
@@ -38,24 +69,24 @@ dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
 ```
 
 The result is a single self-contained `BlancoShot.exe` under
-`src/BlancoShot/bin/Release/net10.0-windows/win-x64/publish/`. Building on a non-Windows host
-works too, with `-p:EnableWindowsTargeting=true`.
+`src/BlancoShot/bin/Release/net10.0-windows/win-x64/publish/`. Building on a non-Windows
+host works too, with `-p:EnableWindowsTargeting=true`.
 
 The icons are generated rather than checked in by hand; `python3 tools/make-icons.py`
 rewrites `assets/` from scratch.
 
-### A note on trimming
+### A note on size
 
-The build sets `PublishSingleFile` and `SelfContained`, but **not** `PublishTrimmed`. The
-SDK rejects that combination outright for Windows Forms:
+The build sets `PublishSingleFile` and `SelfContained`, but **not** `PublishTrimmed` — the
+SDK rejects trimming outright for Windows Forms (`NETSDK1175`, a hard error), so the
+runtime is carried whole and the executable lands around 115 MB on disk.
 
-```
-error NETSDK1175: Windows Forms is not supported or recommended with trimming enabled.
-```
-
-It is a hard error rather than a warning, so a trimmed WinForms build is not something the
-toolchain will produce. `EnableCompressionInSingleFile` and `PublishReadyToRun` are used
-instead, which lands the executable at roughly 50 MB.
+Single-file *compression* is also off, deliberately. Compressed assemblies are inflated
+into private, unshareable memory at startup: measured here, that was ~70 MB of resident
+RAM against ~8 MB without compression, where assemblies map file-backed straight from the
+executable. Disk is paid once; RAM is paid all day. If you want the smaller file anyway,
+publish with `-p:EnableCompressionInSingleFile=true` and the executable drops to ~50 MB
+at exactly that memory cost.
 
 ## Print Screen and Snipping Tool
 
