@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// The app has no main window. The tray icon is the only entry point, and it owns the

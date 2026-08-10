@@ -1,4 +1,4 @@
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>Flat dark rendering for the tray context menu, matching the settings window.</summary>
 internal sealed class DarkMenuRenderer : ToolStripProfessionalRenderer

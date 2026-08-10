@@ -1,4 +1,4 @@
-# SnapKit
+# BlancoShot
 
 A small Windows screenshot utility that does two things: region capture and active-display
 capture. No uploads, no editor, no telemetry, no update checker.
@@ -12,7 +12,7 @@ Both shortcuts are reconfigurable. Every capture is saved as a PNG and copied to
 clipboard; if the save fails the clipboard copy still happens and the error is left in the
 tray tooltip.
 
-Output goes to `%USERPROFILE%\Pictures\Blancoshot` by default, nested by year and month:
+Output goes to `%USERPROFILE%\Pictures\BlancoShot` by default, nested by year and month:
 
 ```
 <root>\2026\08 Aug\chrome_2026-08-10_143052.png
@@ -34,11 +34,11 @@ right-click for capture actions, open/copy last capture, and the screenshots fol
 Requires the .NET 10 SDK.
 
 ```
-dotnet publish src/SnapKit/SnapKit.csproj -c Release
+dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
 ```
 
-The result is a single self-contained `SnapKit.exe` under
-`src/SnapKit/bin/Release/net10.0-windows/win-x64/publish/`. Building on a non-Windows host
+The result is a single self-contained `BlancoShot.exe` under
+`src/BlancoShot/bin/Release/net10.0-windows/win-x64/publish/`. Building on a non-Windows host
 works too, with `-p:EnableWindowsTargeting=true`.
 
 The icons are generated rather than checked in by hand; `python3 tools/make-icons.py`
@@ -63,23 +63,23 @@ Windows has its own setting — *Use the Print screen key to open screen capture
 hands the key to Snipping Tool, and it defaults to on. When it is on, `RegisterHotKey` on
 Print Screen still *succeeds*, so nothing looks broken; the key simply never arrives.
 
-While either hotkey is bound to Print Screen, SnapKit turns that setting off itself: it
+While either hotkey is bound to Print Screen, BlancoShot turns that setting off itself: it
 writes the same `HKCU\Control Panel\Keyboard\PrintScreenKeyForSnippingEnabled` value the
 Settings toggle writes and broadcasts the change so it applies without a sign-out. This
 runs at launch and after a rebind, and says so with a card rather than acting silently.
 If the registry write ever fails, a one-time notice points at the Settings page instead.
-Rebind away from Print Screen and SnapKit stops touching the setting.
+Rebind away from Print Screen and BlancoShot stops touching the setting.
 
 ## Where things are kept
 
-- Configuration: `%APPDATA%\SnapKit\config.json` — hotkeys and save location only.
+- Configuration: `%APPDATA%\BlancoShot\config.json` — hotkeys and save location only.
 - Start with Windows: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. The registry is
   the only record of it, so the checkbox stays honest if the value is removed elsewhere.
 
 ## Tests
 
 ```
-dotnet run --project tests/SnapKit.Tests
+dotnet run --project tests/BlancoShot.Tests
 ```
 
 47 assertions over the logic that does not need a live desktop: hotkey parsing and

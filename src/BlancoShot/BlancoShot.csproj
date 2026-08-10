@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <AssemblyName>SnapKit</AssemblyName>
-    <RootNamespace>SnapKit</RootNamespace>
-    <Product>SnapKit</Product>
+    <AssemblyName>BlancoShot</AssemblyName>
+    <RootNamespace>BlancoShot</RootNamespace>
+    <Product>BlancoShot</Product>
     <Version>1.0.0</Version>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -46,9 +46,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\tray-light.ico" LogicalName="SnapKit.tray-light.ico" />
-    <EmbeddedResource Include="..\..\assets\tray-dark.ico" LogicalName="SnapKit.tray-dark.ico" />
-    <EmbeddedResource Include="..\..\assets\app.ico" LogicalName="SnapKit.app.ico" />
+    <EmbeddedResource Include="..\..\assets\tray-light.ico" LogicalName="BlancoShot.tray-light.ico" />
+    <EmbeddedResource Include="..\..\assets\tray-dark.ico" LogicalName="BlancoShot.tray-dark.ico" />
+    <EmbeddedResource Include="..\..\assets\app.ico" LogicalName="BlancoShot.app.ico" />
   </ItemGroup>
 
 </Project>

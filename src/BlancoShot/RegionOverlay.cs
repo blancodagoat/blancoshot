@@ -1,7 +1,7 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Full virtual-desktop selection overlay. It paints an already-captured desktop bitmap

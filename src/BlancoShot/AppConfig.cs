@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>The on-disk shape of config.json. Startup state deliberately lives in the registry only.</summary>
 internal sealed class ConfigFile

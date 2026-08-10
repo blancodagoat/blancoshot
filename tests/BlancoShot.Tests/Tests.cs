@@ -1,13 +1,13 @@
-// Assertions over the parts of SnapKit that do not need a live desktop: hotkey
+// Assertions over the parts of BlancoShot that do not need a live desktop: hotkey
 // round-tripping, source-app name sanitising and output path construction.
 // The real source files are compiled into this project, not copied.
 //
-//   dotnet run --project tests/SnapKit.Tests
+//   dotnet run --project tests/BlancoShot.Tests
 //
 // Exit code is 0 when everything passes.
 
 
-using SnapKit;
+using BlancoShot;
 
 int failed = 0, passed = 0;
 

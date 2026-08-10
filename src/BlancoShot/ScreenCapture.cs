@@ -1,6 +1,6 @@
 using System.Drawing.Imaging;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Capture geometry. Under PerMonitorV2 the values returned by

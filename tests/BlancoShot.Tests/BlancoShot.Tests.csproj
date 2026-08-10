@@ -6,17 +6,17 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>SnapKit.Tests</RootNamespace>
+    <RootNamespace>BlancoShot.Tests</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Tests.cs" />
     <!-- The production sources under test, compiled in directly rather than duplicated. -->
-    <Compile Include="..\..\src\SnapKit\Native.cs" />
-    <Compile Include="..\..\src\SnapKit\HotkeyBinding.cs" />
-    <Compile Include="..\..\src\SnapKit\SourceApp.cs" />
-    <Compile Include="..\..\src\SnapKit\CaptureNaming.cs" />
+    <Compile Include="..\..\src\BlancoShot\Native.cs" />
+    <Compile Include="..\..\src\BlancoShot\HotkeyBinding.cs" />
+    <Compile Include="..\..\src\BlancoShot\SourceApp.cs" />
+    <Compile Include="..\..\src\BlancoShot\CaptureNaming.cs" />
   </ItemGroup>
 
 </Project>

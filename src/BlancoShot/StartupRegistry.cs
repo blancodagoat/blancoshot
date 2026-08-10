@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Start-with-Windows, via HKCU\...\Run only — not the Startup folder, not Task Scheduler.

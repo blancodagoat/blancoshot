@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>Output path construction, kept free of any UI dependency.</summary>
 internal static class CaptureNaming

@@ -1,4 +1,4 @@
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Hidden message-only window that owns the global hotkey registrations and

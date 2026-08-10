@@ -1,4 +1,4 @@
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Two instances would both try to own the same global hotkeys and one would silently
@@ -7,8 +7,8 @@ namespace SnapKit;
 /// </summary>
 internal sealed class SingleInstance : IDisposable
 {
-    private const string MutexName = @"Local\SnapKit.SingleInstance";
-    private const string SignalName = @"Local\SnapKit.ShowSettings";
+    private const string MutexName = @"Local\BlancoShot.SingleInstance";
+    private const string SignalName = @"Local\BlancoShot.ShowSettings";
 
     private readonly Mutex mutex;
     private EventWaitHandle? signal;
@@ -71,7 +71,7 @@ internal sealed class SingleInstance : IDisposable
         })
         {
             IsBackground = true,
-            Name = "SnapKit single-instance watcher",
+            Name = "BlancoShot single-instance watcher",
         };
 
         watcher.Start();

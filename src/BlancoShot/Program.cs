@@ -1,4 +1,4 @@
-namespace SnapKit;
+namespace BlancoShot;
 
 internal static class Program
 {

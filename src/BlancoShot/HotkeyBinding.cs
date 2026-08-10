@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 internal enum HotkeyId
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Click-to-record hotkey field. Clicking arms it, the next non-modifier keypress is

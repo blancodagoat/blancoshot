@@ -1,6 +1,6 @@
 using System.Drawing.Imaging;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 internal enum CaptureKind
 {

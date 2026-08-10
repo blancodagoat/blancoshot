@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// If Windows' own "Use the Print screen key to open screen capture" is on, RegisterHotKey
@@ -145,7 +145,7 @@ internal static class PrintScreenNotice
             var body = new Label
             {
                 Text = "Windows currently opens Snipping Tool when you press Print Screen, " +
-                       "so it never reaches SnapKit. Turn off \"Use the Print screen key to open " +
+                       "so it never reaches BlancoShot. Turn off \"Use the Print screen key to open " +
                        "screen capture\" in Windows Settings, or pick a different shortcut.",
                 ForeColor = Theme.Dim,
                 AutoSize = false,

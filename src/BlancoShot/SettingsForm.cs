@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Every edit applies and persists immediately. There is no Save button, no dirty

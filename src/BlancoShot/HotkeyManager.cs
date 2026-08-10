@@ -1,4 +1,4 @@
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Keeps the live registrations in step with the config. Rebinding is applied and

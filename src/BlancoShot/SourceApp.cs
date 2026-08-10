@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 internal static class SourceApp
 {

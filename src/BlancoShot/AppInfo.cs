@@ -1,10 +1,10 @@
 using System.Reflection;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 internal static class AppInfo
 {
-    public const string Name = "SnapKit";
+    public const string Name = "BlancoShot";
     public const string GitHubUrl = "https://github.com/blancodagoat/blancoshot";
 
     /// <summary>
@@ -30,7 +30,7 @@ internal static class AppInfo
         }
     }
 
-    /// <summary>%APPDATA%\SnapKit — config plus the first-run notice marker.</summary>
+    /// <summary>%APPDATA%\BlancoShot — config plus the first-run notice marker.</summary>
     public static string DataDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Name);
 
@@ -41,5 +41,5 @@ internal static class AppInfo
     /// so defaulting there buried captures among Windows' — see AppConfig's migration.
     /// </summary>
     public static string DefaultSaveRoot => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Blancoshot");
+        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "BlancoShot");
 }

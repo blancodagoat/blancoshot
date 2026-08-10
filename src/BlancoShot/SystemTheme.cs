@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>
 /// Tracks the shell light/dark setting so the tray glyph can contrast with the taskbar.

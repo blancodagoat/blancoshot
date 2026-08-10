@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SnapKit;
+namespace BlancoShot;
 
 /// <summary>All Win32 interop for the app. No third-party dependencies.</summary>
 internal static class Native
