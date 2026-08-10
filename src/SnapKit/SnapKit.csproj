@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>SnapKit</AssemblyName>
+    <RootNamespace>SnapKit</RootNamespace>
+    <Product>SnapKit</Product>
+    <Version>1.0.0</Version>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <!-- DPI is declared twice on purpose. The manifest is authoritative and takes effect
+       before any managed code runs, which is what capture geometry depends on; the
+       project property keeps the generated ApplicationConfiguration.Initialize() in
+       agreement instead of silently asking for a different mode. WFO0003 objects to the
+       pair, but the two values match, so the analyser is suppressed rather than obeyed. -->
+  <PropertyGroup>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <!-- The spec asks for PublishTrimmed, but the SDK refuses it outright for Windows
+       Forms: "error NETSDK1175: Windows Forms is not supported or recommended with
+       trimming enabled". It is a hard error, not a warning, so the build simply cannot
+       produce a trimmed WinForms app. Single-file compression is the substitute. -->
+  <PropertyGroup>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\tray-light.ico" LogicalName="SnapKit.tray-light.ico" />
+    <EmbeddedResource Include="..\..\assets\tray-dark.ico" LogicalName="SnapKit.tray-dark.ico" />
+    <EmbeddedResource Include="..\..\assets\app.ico" LogicalName="SnapKit.app.ico" />
+  </ItemGroup>
+
+</Project>

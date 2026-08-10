@@ -1,0 +1,37 @@
+namespace SnapKit;
+
+internal static class Program
+{
+    [STAThread]
+    private static void Main()
+    {
+        using var instance = SingleInstance.Acquire();
+        if (!instance.IsFirstInstance)
+        {
+            SingleInstance.SignalExisting();
+            return;
+        }
+
+        // Applies the PerMonitorV2 mode declared in the csproj; the manifest already put
+        // the process in that mode before any of this ran.
+        ApplicationConfiguration.Initialize();
+
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (_, e) => Report(e.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => Report(e.ExceptionObject as Exception);
+
+        using var context = new TrayContext(instance);
+        Application.Run(context);
+    }
+
+    private static void Report(Exception? ex)
+    {
+        if (ex is null)
+        {
+            return;
+        }
+
+        MessageBox.Show(
+            ex.Message, $"{AppInfo.Name} error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    }
+}
