@@ -18,10 +18,18 @@ jobs:
       - name: Test
         run: dotnet run --project tests/BlancoShot.Tests
 
-      - name: Publish
-        run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
+      - name: Publish (framework-dependent)
+        run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -p:SelfContained=false -o publish/framework-dependent
+
+      - name: Publish (self-contained)
+        run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -o publish/self-contained
 
       - uses: actions/upload-artifact@v4
         with:
           name: BlancoShot
-          path: src/BlancoShot/bin/Release/net10.0-windows/win-x64/publish/BlancoShot.exe
+          path: publish/framework-dependent/BlancoShot.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlancoShot-self-contained
+          path: publish/self-contained/BlancoShot.exe

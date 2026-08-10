@@ -4,7 +4,7 @@
 
 **Region and display capture for Windows that stays out of your way.**
 
-Tray-only · ~8 MB of RAM · no uploads · no editor · no telemetry · no update checker
+Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no update checker
 
 [![build](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml)
 
@@ -62,24 +62,30 @@ baseline when the card is gone.
 
 ## Building
 
-Requires the .NET 10 SDK.
+Requires the .NET 10 SDK. Two flavors, both a single `BlancoShot.exe`:
 
 ```
+# Framework-dependent (~0.4 MB) — needs the .NET 10 Desktop Runtime on the machine
+dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -p:SelfContained=false
+
+# Self-contained (~115 MB) — runs anywhere, runtime bundled in
 dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
 ```
 
-The result is a single self-contained `BlancoShot.exe` under
-`src/BlancoShot/bin/Release/net10.0-windows/win-x64/publish/`. Building on a non-Windows
-host works too, with `-p:EnableWindowsTargeting=true`.
+The framework-dependent build is the default download: it is under half a megabyte, and if
+the runtime is missing, Windows shows a dialog that links straight to the installer. The
+self-contained build is the no-questions-asked fallback. CI publishes both as artifacts.
 
-The icons are generated rather than checked in by hand; `python3 tools/make-icons.py`
-rewrites `assets/` from scratch.
+Building on a non-Windows host works too, with `-p:EnableWindowsTargeting=true`. The icons
+are generated rather than checked in by hand; `python3 tools/make-icons.py` rewrites
+`assets/` from scratch.
 
 ### A note on size
 
-The build sets `PublishSingleFile` and `SelfContained`, but **not** `PublishTrimmed` — the
-SDK rejects trimming outright for Windows Forms (`NETSDK1175`, a hard error), so the
-runtime is carried whole and the executable lands around 115 MB on disk.
+The self-contained build sets `PublishSingleFile` and `SelfContained`, but **not**
+`PublishTrimmed` — the SDK rejects trimming outright for Windows Forms (`NETSDK1175`, a
+hard error), so the runtime is carried whole and the executable lands around 115 MB on
+disk.
 
 Single-file *compression* is also off, deliberately. Compressed assemblies are inflated
 into private, unshareable memory at startup: measured here, that was ~70 MB of resident
