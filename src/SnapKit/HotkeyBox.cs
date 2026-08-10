@@ -18,6 +18,10 @@ internal sealed class HotkeyBox : Control
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Func<HotkeyBinding, bool>? Recorded { get; set; }
 
+    /// <summary>True while armed. The owner suspends global hotkeys for the duration.</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Action<bool>? RecordingChanged { get; set; }
+
     public HotkeyBox()
     {
         SetStyle(
@@ -64,6 +68,7 @@ internal sealed class HotkeyBox : Control
         }
 
         recording = true;
+        RecordingChanged?.Invoke(true);
         Invalidate();
     }
 
@@ -75,6 +80,7 @@ internal sealed class HotkeyBox : Control
         }
 
         recording = false;
+        RecordingChanged?.Invoke(false);
         Invalidate();
     }
 
@@ -132,6 +138,10 @@ internal sealed class HotkeyBox : Control
             Native.IsWinKeyDown());
 
         recording = false;
+
+        // Re-register (Resume) before the rebind runs, so TryRebind's unregister/register
+        // sequence starts from the normal registered state.
+        RecordingChanged?.Invoke(false);
 
         if (candidate.IsValid && Recorded?.Invoke(candidate) == true)
         {

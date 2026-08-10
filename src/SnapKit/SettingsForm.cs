@@ -64,6 +64,7 @@ internal sealed class SettingsForm : Form
         regionBox.SetBounds(fieldLeft, 38, fieldWidth, 26);
         regionBox.Binding = config.RegionHotkey;
         regionBox.Recorded = candidate => Apply(HotkeyId.Region, candidate, regionWarning);
+        regionBox.RecordingChanged = OnRecordingChanged;
         Controls.Add(regionBox);
 
         ConfigureWarning(regionWarning, fieldLeft, 66, fieldWidth);
@@ -73,6 +74,7 @@ internal sealed class SettingsForm : Form
         fullBox.SetBounds(fieldLeft, 88, fieldWidth, 26);
         fullBox.Binding = config.FullDisplayHotkey;
         fullBox.Recorded = candidate => Apply(HotkeyId.FullDisplay, candidate, fullWarning);
+        fullBox.RecordingChanged = OnRecordingChanged;
         Controls.Add(fullBox);
 
         ConfigureWarning(fullWarning, fieldLeft, 116, fieldWidth);
@@ -187,12 +189,32 @@ internal sealed class SettingsForm : Form
         return button;
     }
 
+    private void OnRecordingChanged(bool recording)
+    {
+        if (recording)
+        {
+            hotkeys.Suspend();
+        }
+        else
+        {
+            hotkeys.Resume();
+        }
+    }
+
     private bool Apply(HotkeyId id, HotkeyBinding candidate, Label warning)
     {
         if (hotkeys.TryRebind(id, candidate))
         {
             warning.Visible = false;
             warning.Text = string.Empty;
+
+            // Rebinding to Print Screen must take the key from Snipping Tool now, not at
+            // the next launch.
+            if (candidate.Key == Keys.PrintScreen)
+            {
+                PrintScreenNotice.ShowIfNeeded(config);
+            }
+
             return true;
         }
 

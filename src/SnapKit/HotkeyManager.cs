@@ -31,6 +31,18 @@ internal sealed class HotkeyManager
     }
 
     /// <summary>
+    /// Releases both registrations while a HotkeyBox is armed, so pressing a currently
+    /// bound key records it instead of firing a capture over the Settings window.
+    /// </summary>
+    public void Suspend()
+    {
+        window.Unregister(HotkeyId.Region);
+        window.Unregister(HotkeyId.FullDisplay);
+    }
+
+    public void Resume() => RegisterAll();
+
+    /// <summary>
     /// Swaps a binding. On failure the previous binding is put back and re-registered,
     /// so the app is never left with no working hotkey after a rejected edit.
     /// </summary>

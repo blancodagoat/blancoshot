@@ -8,7 +8,6 @@ namespace SnapKit;
 /// </summary>
 internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
 {
-    private const int BalloonMs = 2000;
     private const int TooltipLimit = 63; // NotifyIcon.Text rejects anything longer.
 
     private readonly AppConfig config;
@@ -17,9 +16,13 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
     private readonly CaptureService capture;
     private readonly SystemTheme systemTheme;
     private readonly NotifyIcon tray;
+    private readonly ToolStripMenuItem openLastItem;
+    private readonly ToolStripMenuItem copyLastItem;
 
     private IReadOnlyList<HotkeyId> unavailable = Array.Empty<HotkeyId>();
     private SettingsForm? settings;
+    private CaptureToast? toast;
+    private string? lastCapture;
 
     public TrayContext(SingleInstance instance)
     {
@@ -34,6 +37,15 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
 
         systemTheme = new SystemTheme();
         systemTheme.Changed += ApplyTrayIcon;
+
+        openLastItem = new ToolStripMenuItem("Open last capture", null, (_, _) => OpenLastCapture())
+        {
+            Enabled = false,
+        };
+        copyLastItem = new ToolStripMenuItem("Copy last capture", null, (_, _) => CopyLastCapture())
+        {
+            Enabled = false,
+        };
 
         tray = new NotifyIcon
         {
@@ -64,7 +76,12 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
             Failed($"Shortcut unavailable for {string.Join(" and ", names)}. Pick another in Settings.");
         }
 
-        PrintScreenNotice.ShowIfNeeded(config);
+        if (PrintScreenNotice.ShowIfNeeded(config) && !Native.NotificationsSuppressed())
+        {
+            Toast.ShowNotice("Print Screen reclaimed from Windows Snipping Tool.");
+        }
+
+        CaptureNaming.NormaliseMonthFolders(config.SaveRoot);
     }
 
     private ContextMenuStrip BuildMenu()
@@ -78,6 +95,12 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
             ShowImageMargin = false,
         };
 
+        menu.Items.Add("Capture region", null, (_, _) => AfterMenuCloses(() => RunCapture(capture.CaptureRegion)));
+        menu.Items.Add("Capture display", null, (_, _) => AfterMenuCloses(() => RunCapture(capture.CaptureActiveDisplay)));
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add(openLastItem);
+        menu.Items.Add(copyLastItem);
+        menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings", null, (_, _) => OpenSettings());
         menu.Items.Add("Open screenshots folder", null, (_, _) => OpenScreenshotsFolder());
         menu.Items.Add(new ToolStripSeparator());
@@ -90,13 +113,20 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         switch (id)
         {
             case HotkeyId.Region:
-                capture.CaptureRegion();
+                RunCapture(capture.CaptureRegion);
                 break;
 
             case HotkeyId.FullDisplay:
-                capture.CaptureActiveDisplay();
+                RunCapture(capture.CaptureActiveDisplay);
                 break;
         }
+    }
+
+    /// <summary>A still-visible toast from the previous capture must not end up in this one.</summary>
+    private void RunCapture(Action action)
+    {
+        toast?.HideForCapture();
+        action();
     }
 
     private void ApplyTrayIcon() => tray.Icon = TrayIcons.ForTaskbar(systemTheme.LightTaskbar);
@@ -120,17 +150,93 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         }
     }
 
-    public void Saved(string path)
+    public void Saved(string path, Bitmap thumbnail, CaptureKind kind)
     {
+        lastCapture = path;
+        openLastItem.Enabled = copyLastItem.Enabled = true;
         tray.Text = Truncate(AppInfo.Name);
-        tray.ShowBalloonTip(BalloonMs, AppInfo.Name, Path.GetFileName(path), ToolTipIcon.None);
+
+        if (Native.NotificationsSuppressed())
+        {
+            thumbnail.Dispose();
+            return;
+        }
+
+        Toast.ShowCapture(kind, path, thumbnail);
     }
 
     public void Failed(string message)
     {
-        // The tooltip keeps the error visible after the balloon has gone.
+        // The tooltip keeps the error visible after the toast has gone.
         tray.Text = Truncate($"{AppInfo.Name} — {message}");
-        tray.ShowBalloonTip(BalloonMs * 2, AppInfo.Name, message, ToolTipIcon.Warning);
+
+        if (Native.NotificationsSuppressed())
+        {
+            // The toast must not appear over a game or during quiet hours, but an error
+            // cannot vanish either — a balloon is queued into the notification center
+            // for later instead of being shown now.
+            tray.ShowBalloonTip(4000, AppInfo.Name, message, ToolTipIcon.Warning);
+            return;
+        }
+
+        Toast.ShowError(message);
+    }
+
+    private CaptureToast Toast => toast ??= new CaptureToast();
+
+    /// <summary>
+    /// Menu-triggered captures are deferred a beat so the menu is gone and foreground has
+    /// returned to the user's window before source-app resolution and the overlay run.
+    /// </summary>
+    private static void AfterMenuCloses(Action action)
+    {
+        var delay = new System.Windows.Forms.Timer { Interval = 150 };
+        delay.Tick += (_, _) =>
+        {
+            delay.Dispose();
+            action();
+        };
+        delay.Start();
+    }
+
+    private void OpenLastCapture()
+    {
+        if (lastCapture is null || !File.Exists(lastCapture))
+        {
+            Failed("Last capture is gone from disk.");
+            return;
+        }
+
+        try
+        {
+            Process.Start("explorer.exe", $"/select,\"{lastCapture}\"");
+        }
+        catch (Exception ex)
+        {
+            Failed($"Could not open Explorer. {ex.Message}");
+        }
+    }
+
+    private void CopyLastCapture()
+    {
+        if (lastCapture is null || !File.Exists(lastCapture))
+        {
+            Failed("Last capture is gone from disk.");
+            return;
+        }
+
+        try
+        {
+            using var image = new Bitmap(lastCapture);
+            if (!CaptureService.CopyToClipboard(image))
+            {
+                Failed("Clipboard is held by another app. Try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Failed($"Could not copy. {ex.Message}");
+        }
     }
 
     private static string Truncate(string value) =>
@@ -150,6 +256,7 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
             Application.Idle -= OnFirstIdle;
             tray.Visible = false;
             tray.Dispose();
+            toast?.Dispose();
             settings?.Dispose();
             systemTheme.Changed -= ApplyTrayIcon;
             systemTheme.Dispose();

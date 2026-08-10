@@ -5,8 +5,10 @@ namespace SnapKit;
 /// <summary>
 /// If Windows' own "Use the Print screen key to open screen capture" is on, RegisterHotKey
 /// on VK_SNAPSHOT still succeeds but Snipping Tool gets the key first — capture just
-/// silently does nothing. The setting is never changed programmatically; the user is shown
-/// the conflict once and pointed at the right Settings page.
+/// silently does nothing. While Print Screen is bound, the toggle is turned off directly:
+/// the same HKCU value the Settings page writes, followed by WM_SETTINGCHANGE so the shell
+/// releases the key without a sign-out. The one-time notice dialog survives only as the
+/// fallback for a failed registry write.
 /// </summary>
 internal static class PrintScreenNotice
 {
@@ -21,7 +23,10 @@ internal static class PrintScreenNotice
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(KeyboardKey, writable: false);
-            return key?.GetValue(ValueName) is int value && value != 0;
+            // A missing value is the Windows default, and that default has been ON since
+            // Win11 22H2. Only an explicit 0 means the key is free; writing 0 on an old
+            // build whose default was off is harmless.
+            return key?.GetValue(ValueName) is not 0;
         }
         catch
         {
@@ -29,18 +34,58 @@ internal static class PrintScreenNotice
         }
     }
 
-    /// <summary>Shows the notice at most once, and only while Print Screen is actually bound.</summary>
-    public static void ShowIfNeeded(AppConfig config)
+    /// <summary>
+    /// Reclaims Print Screen whenever the Windows toggle has come back (fresh install,
+    /// Windows update, user re-enabling it) and either hotkey is bound to the key. Runs
+    /// at launch and after a rebind. Returns true when the toggle was actually flipped,
+    /// so the caller can tell the user rather than changing their system silently. The
+    /// dialog shows at most once, and only if the write failed.
+    /// </summary>
+    public static bool ShowIfNeeded(AppConfig config)
     {
-        if (config.RegionHotkey.Key != Keys.PrintScreen || !SnippingOwnsPrintScreen() || AlreadyShown())
+        bool printScreenBound =
+            config.RegionHotkey.Key == Keys.PrintScreen
+            || config.FullDisplayHotkey.Key == Keys.PrintScreen;
+
+        if (!printScreenBound || !SnippingOwnsPrintScreen())
         {
-            return;
+            return false;
         }
 
-        MarkShown();
+        if (TryDisableSnippingHandoff())
+        {
+            return true;
+        }
 
-        using var form = new NoticeForm();
-        form.ShowDialog();
+        if (!AlreadyShown())
+        {
+            MarkShown();
+            using var form = new NoticeForm();
+            form.ShowDialog();
+        }
+
+        return false;
+    }
+
+    private static bool TryDisableSnippingHandoff()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(KeyboardKey, writable: true);
+            if (key is null)
+            {
+                return false;
+            }
+
+            key.SetValue(ValueName, 0, RegistryValueKind.DWord);
+        }
+        catch
+        {
+            return false;
+        }
+
+        Native.BroadcastSettingChange(KeyboardKey);
+        return true;
     }
 
     private static bool AlreadyShown()

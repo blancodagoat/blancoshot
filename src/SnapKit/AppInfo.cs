@@ -36,6 +36,10 @@ internal static class AppInfo
 
     public static string ConfigPath => Path.Combine(DataDirectory, "config.json");
 
+    /// <summary>
+    /// A folder of our own. Pictures\Screenshots is where Win+PrintScreen dumps its output,
+    /// so defaulting there buried captures among Windows' — see AppConfig's migration.
+    /// </summary>
     public static string DefaultSaveRoot => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots");
+        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Blancoshot");
 }

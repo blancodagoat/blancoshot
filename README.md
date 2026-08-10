@@ -12,14 +12,22 @@ Both shortcuts are reconfigurable. Every capture is saved as a PNG and copied to
 clipboard; if the save fails the clipboard copy still happens and the error is left in the
 tray tooltip.
 
-Output goes to `%USERPROFILE%\Pictures\Screenshots` by default, nested by year and month:
+Output goes to `%USERPROFILE%\Pictures\Blancoshot` by default, nested by year and month:
 
 ```
-<root>\2026\08\chrome_2026-08-10_143052.png
+<root>\2026\08 Aug\chrome_2026-08-10_143052.png
 ```
+
+A capture confirms itself with a small card in the bottom-right corner — thumbnail,
+filename, size — that fades out after a few seconds. It never steals focus; hovering
+pauses it, clicking reveals the file in Explorer. While a fullscreen game, presentation,
+or Focus Assist is active no card appears at all (showing one could knock a game out of
+exclusive fullscreen); a failed save is queued to the notification center instead so it
+cannot vanish silently. Taking a second screenshot hides the card first, so it never
+appears inside its successor.
 
 The app has no main window. The tray icon is the entry point — double-click for settings,
-right-click for the menu.
+right-click for capture actions, open/copy last capture, and the screenshots folder.
 
 ## Building
 
@@ -49,17 +57,18 @@ It is a hard error rather than a warning, so a trimmed WinForms build is not som
 toolchain will produce. `EnableCompressionInSingleFile` and `PublishReadyToRun` are used
 instead, which lands the executable at roughly 50 MB.
 
-## Print Screen may not reach SnapKit
+## Print Screen and Snipping Tool
 
 Windows has its own setting — *Use the Print screen key to open screen capture* — that
-hands the key to Snipping Tool. When it is on, `RegisterHotKey` on Print Screen still
-*succeeds*, so nothing looks broken; the key simply never arrives and region capture does
-nothing.
+hands the key to Snipping Tool, and it defaults to on. When it is on, `RegisterHotKey` on
+Print Screen still *succeeds*, so nothing looks broken; the key simply never arrives.
 
-SnapKit reads `HKCU\Control Panel\Keyboard\PrintScreenKeyForSnippingEnabled` on first run
-and, if the conflict is live, shows a one-time notice with a button that opens the relevant
-Settings page. It never changes the setting for you. Either turn it off there, or bind
-region capture to something else.
+While either hotkey is bound to Print Screen, SnapKit turns that setting off itself: it
+writes the same `HKCU\Control Panel\Keyboard\PrintScreenKeyForSnippingEnabled` value the
+Settings toggle writes and broadcasts the change so it applies without a sign-out. This
+runs at launch and after a rebind, and says so with a card rather than acting silently.
+If the registry write ever fails, a one-time notice points at the Settings page instead.
+Rebind away from Print Screen and SnapKit stops touching the setting.
 
 ## Where things are kept
 
@@ -73,25 +82,17 @@ region capture to something else.
 dotnet run --project tests/SnapKit.Tests
 ```
 
-41 assertions over the logic that does not need a live desktop: hotkey parsing and
+47 assertions over the logic that does not need a live desktop: hotkey parsing and
 formatting (a round-trip failure here would quietly reset the user's shortcuts on every
-launch), source-app name sanitising, and output path construction including same-second
-collision suffixes. The project compiles the production source files in directly rather
-than copying them.
+launch), source-app name sanitising, output path construction including same-second
+collision suffixes, and the legacy month-folder migration. The project compiles the
+production source files in directly rather than copying them.
 
 ## Verification status
 
-Those 41 assertions pass. The build and the single-file publish are clean, and the
-published executable has been checked to be a 64-bit GUI PE with the PerMonitorV2 manifest
-and the icon resources embedded.
-
-Everything else is Windows-only behaviour that has **not** been exercised on hardware —
-this was built and verified on Linux. Still outstanding, in rough order of risk:
-
-- **The mixed-DPI pass the spec asks for**: 150% primary + 100% secondary, checking that
-  captures are pixel-exact and that region selection lands where the mouse was dragged on
-  both monitors. The overlay deliberately swallows `WM_DPICHANGED` and re-asserts its
-  bounds, which is the part most worth confirming.
-- Capture, clipboard hand-off and PNG output.
-- Global hotkey registration, rebinding and the in-use warning.
-- Tray icon, its light/dark swap, and the settings window.
+Capture, clipboard hand-off, PNG output, the tray icon and menu, the settings window,
+hotkey rebinding and the capture card have all been exercised on Windows 11 hardware.
+Still outstanding: the mixed-DPI pass — 150% primary + 100% secondary, checking that
+captures are pixel-exact and that region selection lands where the mouse was dragged on
+both monitors. The overlay deliberately swallows `WM_DPICHANGED` and re-asserts its
+bounds, which is the part most worth confirming.

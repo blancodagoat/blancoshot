@@ -21,7 +21,7 @@ void Check(string name, bool ok, string? detail = null)
 void Eq(string name, object? actual, object? expected) =>
     Check(name, Equals(actual, expected), $"expected <{expected}>, got <{actual}>");
 
-// ---- HotkeyBinding: display names -----------------------------------------
+// HotkeyBinding: display names
 Eq("default region renders", HotkeyBinding.DefaultRegion.ToString(), "PrintScreen");
 Eq("default full renders", HotkeyBinding.DefaultFullDisplay.ToString(), "F8");
 Eq("modifier order", new HotkeyBinding(Keys.S, true, true, true, true).ToString(), "Ctrl+Alt+Shift+Win+S");
@@ -29,7 +29,7 @@ Eq("digit key name", new HotkeyBinding(Keys.D4, true, false, false, false).ToStr
 Eq("oem key name", new HotkeyBinding(Keys.OemPeriod, false, true, false, false).ToString(), "Alt+.");
 Eq("enter alias", new HotkeyBinding(Keys.Return, false, false, false, false).ToString(), "Enter");
 
-// ---- HotkeyBinding: round trip -------------------------------------------
+// HotkeyBinding: round trip
 // A parse failure here would silently reset the user's hotkeys to defaults on every launch.
 var samples = new[]
 {
@@ -52,7 +52,7 @@ foreach (var sample in samples)
         $"reparsed as {(HotkeyBinding.TryParse(text, out var b) ? b.ToString() : "<parse failed>")}");
 }
 
-// ---- HotkeyBinding: tolerant and rejecting parses -------------------------
+// HotkeyBinding: tolerant and rejecting parses
 Check("parses lowercase", HotkeyBinding.TryParse("ctrl+shift+s", out var lower) && lower == new HotkeyBinding(Keys.S, true, false, true, false));
 Check("parses control alias", HotkeyBinding.TryParse("Control+A", out _));
 Check("parses prtsc alias", HotkeyBinding.TryParse("prtsc", out var prt) && prt.Key == Keys.PrintScreen);
@@ -61,7 +61,7 @@ Check("rejects null", !HotkeyBinding.TryParse(null, out _));
 Check("rejects modifier only", !HotkeyBinding.TryParse("Ctrl", out _));
 Check("rejects nonsense", !HotkeyBinding.TryParse("Ctrl+Nope", out _));
 
-// ---- SourceApp.Sanitise ---------------------------------------------------
+// SourceApp.Sanitise
 Eq("plain name", SourceApp.Sanitise("chrome"), "chrome");
 Eq("strips exe", SourceApp.Sanitise("Chrome.exe"), "chrome");
 Eq("strips path", SourceApp.Sanitise(@"C:\Program Files\Google\Chrome.exe"), "chrome");
@@ -76,9 +76,9 @@ Eq("all-invalid is unknown", SourceApp.Sanitise("???"), "unknown");
 Eq("dot-only is unknown", SourceApp.Sanitise("..."), "unknown");
 Check("never yields a path separator", !SourceApp.Sanitise(@"a\b/c").Contains('\\'));
 
-// ---- CaptureNaming --------------------------------------------------------
+// CaptureNaming
 var when = new DateTime(2026, 8, 10, 14, 30, 52);
-var folder = Path.Combine("root", "2026", "08");
+var folder = Path.Combine("root", "2026", "08 Aug");
 
 Eq("folder nesting", CaptureNaming.FolderFor("root", when), folder);
 Eq("filename shape",
@@ -95,12 +95,41 @@ Eq("collision suffix",
     Path.GetFileName(CaptureNaming.BuildPath(folder, "chrome", when, taken.Contains)),
     "chrome_2026-08-10_143052_3.png");
 
-// Single-digit month and hour must stay zero-padded or the sort order breaks.
+// Filename dates must stay zero-padded or the sort order breaks; month folders carry
+// the number for the same reason ("01 Jan" sorts chronologically, "Jan" does not).
 var early = new DateTime(2026, 1, 2, 3, 4, 5);
-Eq("zero padded folder", CaptureNaming.FolderFor("root", early), Path.Combine("root", "2026", "01"));
+Eq("month folder shape", CaptureNaming.FolderFor("root", early), Path.Combine("root", "2026", "01 Jan"));
 Eq("zero padded name",
     Path.GetFileName(CaptureNaming.BuildPath("f", "app", early, _ => false)),
     "app_2026-01-02_030405.png");
+
+// NormaliseMonthFolders
+// Legacy "08" and "Aug" folders from earlier naming schemes fold into "08 Aug",
+// merging when both exist; current-shape and unrelated folders are untouched.
+var tempRoot = Path.Combine(Path.GetTempPath(), "snapkit-test-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var year = Path.Combine(tempRoot, "2026");
+    Directory.CreateDirectory(Path.Combine(year, "08"));
+    Directory.CreateDirectory(Path.Combine(year, "Aug"));
+    Directory.CreateDirectory(Path.Combine(year, "01 Jan"));
+    Directory.CreateDirectory(Path.Combine(year, "notes"));
+    File.WriteAllText(Path.Combine(year, "08", "a.png"), "");
+    File.WriteAllText(Path.Combine(year, "Aug", "b.png"), "");
+
+    CaptureNaming.NormaliseMonthFolders(tempRoot);
+
+    Check("numeric folder folded", !Directory.Exists(Path.Combine(year, "08")));
+    Check("named folder folded", !Directory.Exists(Path.Combine(year, "Aug")));
+    Check("merged file a", File.Exists(Path.Combine(year, "08 Aug", "a.png")));
+    Check("merged file b", File.Exists(Path.Combine(year, "08 Aug", "b.png")));
+    Check("canonical untouched", Directory.Exists(Path.Combine(year, "01 Jan")));
+    Check("unrelated untouched", Directory.Exists(Path.Combine(year, "notes")));
+}
+finally
+{
+    try { Directory.Delete(tempRoot, recursive: true); } catch { }
+}
 
 Console.WriteLine($"\n{passed} passed, {failed} failed");
 return failed == 0 ? 0 : 1;
