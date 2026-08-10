@@ -113,7 +113,7 @@ internal sealed class SettingsForm : Form
 
         var footer = new LinkLabel
         {
-            Text = $"{AppInfo.Name} {AppInfo.Version} · {AppInfo.GitHubUrl}",
+            Text = $"{AppInfo.Name} · GitHub · Portfolio",
             Font = Theme.Ui(8.25f),
             ForeColor = Theme.Dim,
             LinkColor = Theme.Dim,
@@ -123,9 +123,12 @@ internal sealed class SettingsForm : Form
             AutoSize = false,
         };
         footer.SetBounds(left, 312, contentWidth, 18);
-        footer.LinkArea = new LinkArea(
-            footer.Text.IndexOf("https", StringComparison.Ordinal), AppInfo.GitHubUrl.Length);
-        footer.LinkClicked += (_, _) => OpenUrl(AppInfo.GitHubUrl);
+        footer.Links.Clear();
+        footer.Links.Add(
+            footer.Text.IndexOf("GitHub", StringComparison.Ordinal), "GitHub".Length, AppInfo.GitHubUrl);
+        footer.Links.Add(
+            footer.Text.IndexOf("Portfolio", StringComparison.Ordinal), "Portfolio".Length, AppInfo.PortfolioUrl);
+        footer.LinkClicked += (_, e) => OpenUrl((string)e.Link!.LinkData!);
         Controls.Add(footer);
 
         var close = FlatButton("Close", ClientSize.Width - right - 82, 338, 82, 28);
