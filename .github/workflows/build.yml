@@ -27,20 +27,12 @@ jobs:
       - name: Publish (self-contained)
         run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -o publish/self-contained
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: BlancoShot
-          path: publish/framework-dependent/BlancoShot.exe
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: BlancoShot-self-contained
-          path: publish/self-contained/BlancoShot.exe
-
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
         run: |
           Copy-Item publish/self-contained/BlancoShot.exe BlancoShot-self-contained.exe
-          gh release create ${{ github.ref_name }} publish/framework-dependent/BlancoShot.exe BlancoShot-self-contained.exe --generate-notes
+          gh release delete $env:TAG --yes --cleanup-tag
+          gh release create $env:TAG publish/framework-dependent/BlancoShot.exe BlancoShot-self-contained.exe --target $env:GITHUB_SHA --generate-notes

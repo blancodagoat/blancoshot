@@ -78,7 +78,7 @@ dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
 
 The framework-dependent build is the default download: it is under half a megabyte, and if
 the runtime is missing, Windows shows a dialog that links straight to the installer. The
-self-contained build is the no-questions-asked fallback. CI publishes both as artifacts.
+self-contained build is the no-questions-asked fallback. CI attaches both to the release.
 
 Building on a non-Windows host works too, with `-p:EnableWindowsTargeting=true`. The icons
 are generated rather than checked in by hand; `python3 tools/make-icons.py` rewrites
