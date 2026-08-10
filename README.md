@@ -12,6 +12,10 @@ Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor �
 
 ---
 
+Grab `BlancoShot.exe` from the [latest release](https://github.com/blancodagoat/blancoshot/releases/latest)
+(under 1 MB; asks for the .NET 10 Desktop Runtime if it's missing), or
+`BlancoShot-self-contained.exe` if you'd rather not install anything.
+
 | | |
 |---|---|
 | **Print Screen** | interactive region capture |

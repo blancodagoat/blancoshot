@@ -3,11 +3,14 @@ name: build
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
 
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -33,3 +36,11 @@ jobs:
         with:
           name: BlancoShot-self-contained
           path: publish/self-contained/BlancoShot.exe
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Copy-Item publish/self-contained/BlancoShot.exe BlancoShot-self-contained.exe
+          gh release create ${{ github.ref_name }} publish/framework-dependent/BlancoShot.exe BlancoShot-self-contained.exe --generate-notes
