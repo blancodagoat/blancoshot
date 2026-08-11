@@ -21,6 +21,9 @@ Grab `BlancoShot.exe` from the [latest release](https://github.com/blancodagoat/
 | **Print Screen** | interactive region capture |
 | **F8** | full capture of the display holding the foreground window |
 
+In region capture, the window (or pane) under the cursor highlights itself; click to take
+it as-is, or drag to select freehand.
+
 Both shortcuts are reconfigurable. Every capture is saved as a PNG and copied to the
 clipboard; if the save fails the clipboard copy still happens and the error is left in the
 tray tooltip.
@@ -31,15 +34,15 @@ Output goes to `%USERPROFILE%\Pictures\BlancoShot` by default, nested by year an
 <root>\2026\08 Aug\chrome_2026-08-10_143052.png
 ```
 
-A capture confirms itself with a small card in the bottom-right corner — thumbnail,
-filename, size — that fades out after a few seconds. It never steals focus; hovering
+A capture confirms itself with a small card in the bottom-right corner (thumbnail,
+filename, size) that fades out after a few seconds. It never steals focus; hovering
 pauses it, clicking reveals the file in Explorer. While a fullscreen game, presentation,
 or Focus Assist is active no card appears at all (showing one could knock a game out of
 exclusive fullscreen); a failed save is queued to the notification center instead so it
 cannot vanish silently. Taking a second screenshot hides the card first, so it never
 appears inside its successor.
 
-The app has no main window. The tray icon is the entry point — double-click for settings,
+The app has no main window. The tray icon is the entry point: double-click for settings,
 right-click for capture actions, open/copy last capture, and the screenshots folder.
 
 ## Footprint
@@ -49,16 +52,16 @@ Idle in the tray, which is where a screenshot tool spends its life:
 | Tool | Idle memory |
 |---|---|
 | **BlancoShot** | **~8 MB** |
-| Greenshot | 15–30 MB |
-| ShareX | 50–300 MB, version-dependent |
+| Greenshot | 15-30 MB |
+| ShareX | 50-300 MB, version-dependent |
 | Snagit | 200+ MB |
 | FireShot | runs inside your browser, so its cost hides in the browser's |
 
 BlancoShot's figure is measured: the private working set (Task Manager's "Memory" column)
 of the published Release build, idle in the tray on Windows 11. The other figures are as
-reported by users and reviews — [Greenshot's FAQ](https://getgreenshot.org/faq/greenshot-uses-x-mb-of-my-ram-why-is-that/),
+reported by users and reviews ([Greenshot's FAQ](https://getgreenshot.org/faq/greenshot-uses-x-mb-of-my-ram-why-is-that/),
 [ShareX's issue tracker](https://github.com/ShareX/ShareX/issues/3179), and
-[side-by-side reviews](https://www.screensnap.pro/blog/sharex-vs-greenshot) — and vary
+[side-by-side reviews](https://www.screensnap.pro/blog/sharex-vs-greenshot)) and vary
 with version and configuration, so read them as ballpark rather than benchmark.
 
 Memory spikes while a capture is in flight (the frame exists as a bitmap) and returns to
@@ -69,10 +72,10 @@ baseline when the card is gone.
 Requires the .NET 10 SDK. Two flavors, both a single `BlancoShot.exe`:
 
 ```
-# Framework-dependent (~0.4 MB) — needs the .NET 10 Desktop Runtime on the machine
+# Framework-dependent (~0.4 MB), needs the .NET 10 Desktop Runtime on the machine
 dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -p:SelfContained=false
 
-# Self-contained (~115 MB) — runs anywhere, runtime bundled in
+# Self-contained (~115 MB), runs anywhere, runtime bundled in
 dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
 ```
 
@@ -87,7 +90,7 @@ are generated rather than checked in by hand; `python3 tools/make-icons.py` rewr
 ### A note on size
 
 The self-contained build sets `PublishSingleFile` and `SelfContained`, but **not**
-`PublishTrimmed` — the SDK rejects trimming outright for Windows Forms (`NETSDK1175`, a
+`PublishTrimmed`: the SDK rejects trimming outright for Windows Forms (`NETSDK1175`, a
 hard error), so the runtime is carried whole and the executable lands around 115 MB on
 disk.
 
@@ -100,7 +103,7 @@ at exactly that memory cost.
 
 ## Print Screen and Snipping Tool
 
-Windows has its own setting — *Use the Print screen key to open screen capture* — that
+Windows has its own setting, *Use the Print screen key to open screen capture*, that
 hands the key to Snipping Tool, and it defaults to on. When it is on, `RegisterHotKey` on
 Print Screen still *succeeds*, so nothing looks broken; the key simply never arrives.
 
@@ -113,7 +116,7 @@ Rebind away from Print Screen and BlancoShot stops touching the setting.
 
 ## Where things are kept
 
-- Configuration: `%APPDATA%\BlancoShot\config.json` — hotkeys and save location only.
+- Configuration: `%APPDATA%\BlancoShot\config.json` (hotkeys and save location only).
 - Start with Windows: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. The registry is
   the only record of it, so the checkbox stays honest if the value is removed elsewhere.
 
@@ -123,17 +126,18 @@ Rebind away from Print Screen and BlancoShot stops touching the setting.
 dotnet run --project tests/BlancoShot.Tests
 ```
 
-47 assertions over the logic that does not need a live desktop: hotkey parsing and
+53 assertions over the logic that does not need a live desktop: hotkey parsing and
 formatting (a round-trip failure here would quietly reset the user's shortcuts on every
 launch), source-app name sanitising, output path construction including same-second
-collision suffixes, and the legacy month-folder migration. The project compiles the
+collision suffixes, window/control hit-testing for hover capture, and the legacy
+month-folder migration. The project compiles the
 production source files in directly rather than copying them.
 
 ## Verification status
 
 Capture, clipboard hand-off, PNG output, the tray icon and menu, the settings window,
 hotkey rebinding and the capture card have all been exercised on Windows 11 hardware.
-Still outstanding: the mixed-DPI pass — 150% primary + 100% secondary, checking that
+Still outstanding: the mixed-DPI pass (150% primary + 100% secondary), checking that
 captures are pixel-exact and that region selection lands where the mouse was dragged on
 both monitors. The overlay deliberately swallows `WM_DPICHANGED` and re-asserts its
 bounds, which is the part most worth confirming.
