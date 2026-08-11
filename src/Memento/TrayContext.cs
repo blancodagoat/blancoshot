@@ -104,6 +104,23 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings", null, (_, _) => OpenSettings());
         menu.Items.Add("Open screenshots folder", null, (_, _) => OpenScreenshotsFolder());
+
+        // Hotkeys are not delivered while an elevated window has focus; running elevated
+        // ourselves is the only bypass Windows allows.
+        if (!Elevation.IsElevated)
+        {
+            menu.Items.Add(new ToolStripMenuItem("Restart as administrator", null, (_, _) =>
+            {
+                if (Elevation.TryRestartElevated())
+                {
+                    Quit();
+                }
+            })
+            {
+                ToolTipText = "Needed for capture hotkeys to work while an admin app or game has focus.",
+            });
+        }
+
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => Quit());
         return menu;
