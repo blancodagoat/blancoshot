@@ -10,7 +10,7 @@
     <AssemblyName>Memento</AssemblyName>
     <RootNamespace>Memento</RootNamespace>
     <Product>Memento</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
