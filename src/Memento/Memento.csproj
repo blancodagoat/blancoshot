@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <AssemblyName>BlancoShot</AssemblyName>
-    <RootNamespace>BlancoShot</RootNamespace>
-    <Product>BlancoShot</Product>
+    <AssemblyName>Memento</AssemblyName>
+    <RootNamespace>Memento</RootNamespace>
+    <Product>Memento</Product>
     <Version>1.1.0</Version>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -51,9 +51,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\tray-light.ico" LogicalName="BlancoShot.tray-light.ico" />
-    <EmbeddedResource Include="..\..\assets\tray-dark.ico" LogicalName="BlancoShot.tray-dark.ico" />
-    <EmbeddedResource Include="..\..\assets\app.ico" LogicalName="BlancoShot.app.ico" />
+    <EmbeddedResource Include="..\..\assets\tray-light.ico" LogicalName="Memento.tray-light.ico" />
+    <EmbeddedResource Include="..\..\assets\tray-dark.ico" LogicalName="Memento.tray-dark.ico" />
+    <EmbeddedResource Include="..\..\assets\app.ico" LogicalName="Memento.app.ico" />
   </ItemGroup>
 
 </Project>

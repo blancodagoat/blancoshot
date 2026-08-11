@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Every edit applies and persists immediately. There is no Save button, no dirty

@@ -1,4 +1,4 @@
-namespace BlancoShot;
+namespace Memento;
 
 internal static class Program
 {

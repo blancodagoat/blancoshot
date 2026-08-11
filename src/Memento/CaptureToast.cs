@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// The capture-complete card: borderless, top-most, never activated, bottom-right of the

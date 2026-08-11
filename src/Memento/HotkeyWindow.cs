@@ -1,4 +1,4 @@
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Hidden message-only window that owns the global hotkey registrations and

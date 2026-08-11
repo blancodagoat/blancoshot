@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Tracks the shell light/dark setting so the tray glyph can contrast with the taskbar.

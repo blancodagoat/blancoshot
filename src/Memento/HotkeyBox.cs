@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Click-to-record hotkey field. Clicking arms it, the next non-modifier keypress is

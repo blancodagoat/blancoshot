@@ -17,8 +17,8 @@ assignees: ""
 
 **Setup**
 
-- BlancoShot version (tray menu shows it):
-- Which exe: `BlancoShot.exe` / `BlancoShot-self-contained.exe`
+- Memento version (tray menu shows it):
+- Which exe: `Memento.exe` / `Memento-self-contained.exe`
 - Windows version:
 - Displays (count, resolutions, DPI scaling if you know it):
 

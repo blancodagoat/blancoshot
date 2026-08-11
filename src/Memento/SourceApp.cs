@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace BlancoShot;
+namespace Memento;
 
 internal static class SourceApp
 {

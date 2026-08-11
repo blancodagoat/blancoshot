@@ -1,12 +1,12 @@
 <div align="center">
 
-# BlancoShot
+# Memento
 
 **Region and display capture for Windows that stays out of your way.**
 
 Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no update checker
 
-[![build](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/blancoshot/actions/workflows/build.yml)
+[![build](https://github.com/blancodagoat/memento/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/memento/actions/workflows/build.yml)
 
 </div>
 
@@ -14,7 +14,7 @@ Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor �
 
 ## Quick start
 
-1. Download `BlancoShot.exe` from the [latest release](https://github.com/blancodagoat/blancoshot/releases/latest). It is under 1 MB; if the .NET 10 Desktop Runtime is missing, Windows shows a dialog that links straight to the installer. Prefer zero installs? Take `BlancoShot-self-contained.exe` instead.
+1. Download `Memento.exe` from the [latest release](https://github.com/blancodagoat/memento/releases/latest). It is under 1 MB; if the .NET 10 Desktop Runtime is missing, Windows shows a dialog that links straight to the installer. Prefer zero installs? Take `Memento-self-contained.exe` instead.
 2. Run it. An icon appears in the tray; there is no main window.
 3. Press **Print Screen**.
 
@@ -31,7 +31,7 @@ In region capture, the window (or pane) under the cursor highlights itself. Clic
 
 Every capture is saved as a PNG and copied to the clipboard. If the save fails, the clipboard copy still happens and the error is left in the tray tooltip.
 
-Shots land in `%USERPROFILE%\Pictures\BlancoShot` by default, nested by year and month:
+Shots land in `%USERPROFILE%\Pictures\Memento` by default, nested by year and month:
 
 ```
 <root>\2026\08 Aug\chrome_2026-08-10_143052.png
@@ -51,13 +51,13 @@ Idle in the tray, which is where a screenshot tool spends its life:
 
 | Tool | Idle memory |
 |---|---|
-| **BlancoShot** | **~8 MB** |
+| **Memento** | **~8 MB** |
 | Greenshot | 15-30 MB |
 | ShareX | 50-300 MB, version-dependent |
 | Snagit | 200+ MB |
 | FireShot | runs inside your browser, so its cost hides in the browser's |
 
-BlancoShot's figure is measured: the private working set (Task Manager's "Memory" column) of the published Release build, idle in the tray on Windows 11.
+Memento's figure is measured: the private working set (Task Manager's "Memory" column) of the published Release build, idle in the tray on Windows 11.
 
 The other figures are as reported by users and reviews ([Greenshot's FAQ](https://getgreenshot.org/faq/greenshot-uses-x-mb-of-my-ram-why-is-that/), [ShareX's issue tracker](https://github.com/ShareX/ShareX/issues/3179), and [side-by-side reviews](https://www.screensnap.pro/blog/sharex-vs-greenshot)) and vary with version and configuration, so read them as ballpark rather than benchmark.
 
@@ -65,14 +65,14 @@ Memory spikes while a capture is in flight (the frame exists as a bitmap) and re
 
 ## Building
 
-Requires the .NET 10 SDK. Two flavors, both a single `BlancoShot.exe`:
+Requires the .NET 10 SDK. Two flavors, both a single `Memento.exe`:
 
 ```
 # Framework-dependent (~0.4 MB), needs the .NET 10 Desktop Runtime on the machine
-dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -p:SelfContained=false
+dotnet publish src/Memento/Memento.csproj -c Release -p:SelfContained=false
 
 # Self-contained (~115 MB), runs anywhere, runtime bundled in
-dotnet publish src/BlancoShot/BlancoShot.csproj -c Release
+dotnet publish src/Memento/Memento.csproj -c Release
 ```
 
 The framework-dependent build is the default download: it is under half a megabyte, and if the runtime is missing, Windows shows a dialog that links straight to the installer. The self-contained build is the no-questions-asked fallback. CI attaches both to the release.
@@ -87,22 +87,22 @@ Single-file *compression* is also off, deliberately. Compressed assemblies are i
 
 ## Print Screen and Snipping Tool
 
-Short version: while a hotkey is bound to Print Screen, BlancoShot claims the key from Snipping Tool for you, and says so with a card rather than acting silently.
+Short version: while a hotkey is bound to Print Screen, Memento claims the key from Snipping Tool for you, and says so with a card rather than acting silently.
 
 The long version. Windows has its own setting, *Use the Print screen key to open screen capture*, that hands the key to Snipping Tool, and it defaults to on. When it is on, `RegisterHotKey` on Print Screen still *succeeds*, so nothing looks broken; the key simply never arrives.
 
-BlancoShot turns that setting off itself: it writes the same `HKCU\Control Panel\Keyboard\PrintScreenKeyForSnippingEnabled` value the Settings toggle writes and broadcasts the change so it applies without a sign-out. This runs at launch and after a rebind. If the registry write ever fails, a one-time notice points at the Settings page instead. Rebind away from Print Screen and BlancoShot stops touching the setting.
+Memento turns that setting off itself: it writes the same `HKCU\Control Panel\Keyboard\PrintScreenKeyForSnippingEnabled` value the Settings toggle writes and broadcasts the change so it applies without a sign-out. This runs at launch and after a rebind. If the registry write ever fails, a one-time notice points at the Settings page instead. Rebind away from Print Screen and Memento stops touching the setting.
 
 ## Where things are kept
 
-- Configuration: `%APPDATA%\BlancoShot\config.json` (hotkeys and save location only).
+- Configuration: `%APPDATA%\Memento\config.json` (hotkeys and save location only).
 - Start with Windows: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. The registry is
   the only record of it, so the checkbox stays honest if the value is removed elsewhere.
 
 ## Tests
 
 ```
-dotnet run --project tests/BlancoShot.Tests
+dotnet run --project tests/Memento.Tests
 ```
 
 53 assertions over the logic that does not need a live desktop: hotkey parsing and formatting (a round-trip failure here would quietly reset the user's shortcuts on every launch), source-app name sanitising, output path construction including same-second collision suffixes, window/control hit-testing for hover capture, and the legacy month-folder migration. The project compiles the production source files in directly rather than copying them.

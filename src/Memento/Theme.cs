@@ -1,6 +1,6 @@
 using System.Drawing.Text;
 
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>The dark palette shared by the settings window, the tray menu and the overlay.</summary>
 internal static class Theme

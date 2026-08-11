@@ -1,6 +1,6 @@
 using System.Drawing.Imaging;
 
-namespace BlancoShot;
+namespace Memento;
 
 internal enum CaptureKind
 {

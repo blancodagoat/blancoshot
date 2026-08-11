@@ -6,17 +6,17 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>BlancoShot.Tests</RootNamespace>
+    <RootNamespace>Memento.Tests</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Tests.cs" />
     <!-- The production sources under test, compiled in directly rather than duplicated. -->
-    <Compile Include="..\..\src\BlancoShot\Native.cs" />
-    <Compile Include="..\..\src\BlancoShot\HotkeyBinding.cs" />
-    <Compile Include="..\..\src\BlancoShot\SourceApp.cs" />
-    <Compile Include="..\..\src\BlancoShot\CaptureNaming.cs" />
+    <Compile Include="..\..\src\Memento\Native.cs" />
+    <Compile Include="..\..\src\Memento\HotkeyBinding.cs" />
+    <Compile Include="..\..\src\Memento\SourceApp.cs" />
+    <Compile Include="..\..\src\Memento\CaptureNaming.cs" />
   </ItemGroup>
 
 </Project>

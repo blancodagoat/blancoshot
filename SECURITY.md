@@ -2,12 +2,12 @@
 
 ## Supported versions
 
-Only the [latest release](https://github.com/blancodagoat/blancoshot/releases/latest) is supported. There is no auto-updater, so please update manually before reporting.
+Only the [latest release](https://github.com/blancodagoat/memento/releases/latest) is supported. There is no auto-updater, so please update manually before reporting.
 
 ## Reporting a vulnerability
 
 Please **do not open a public issue** for security problems.
 
-Report privately via [GitHub private vulnerability reporting](https://github.com/blancodagoat/blancoshot/security/advisories/new), or email **blancoleodagoat@gmail.com**.
+Report privately via [GitHub private vulnerability reporting](https://github.com/blancodagoat/memento/security/advisories/new), or email **blancoleodagoat@gmail.com**.
 
-You can expect an acknowledgement within a few days. Since BlancoShot runs entirely locally (no network access, no uploads, no telemetry), the interesting surface is file handling, the clipboard, and Win32 interop.
+You can expect an acknowledgement within a few days. Since Memento runs entirely locally (no network access, no uploads, no telemetry), the interesting surface is file handling, the clipboard, and Win32 interop.

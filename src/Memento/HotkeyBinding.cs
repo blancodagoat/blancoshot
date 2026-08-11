@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace BlancoShot;
+namespace Memento;
 
 internal enum HotkeyId
 {

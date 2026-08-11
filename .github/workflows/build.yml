@@ -19,13 +19,13 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Test
-        run: dotnet run --project tests/BlancoShot.Tests
+        run: dotnet run --project tests/Memento.Tests
 
       - name: Publish (framework-dependent)
-        run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -p:SelfContained=false -o publish/framework-dependent
+        run: dotnet publish src/Memento/Memento.csproj -c Release -p:SelfContained=false -o publish/framework-dependent
 
       - name: Publish (self-contained)
-        run: dotnet publish src/BlancoShot/BlancoShot.csproj -c Release -o publish/self-contained
+        run: dotnet publish src/Memento/Memento.csproj -c Release -o publish/self-contained
 
       - name: Release
         if: github.event_name == 'push'
@@ -33,6 +33,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
         run: |
-          Copy-Item publish/self-contained/BlancoShot.exe BlancoShot-self-contained.exe
+          Copy-Item publish/self-contained/Memento.exe Memento-self-contained.exe
           gh release delete $env:TAG --yes --cleanup-tag
-          gh release create $env:TAG publish/framework-dependent/BlancoShot.exe BlancoShot-self-contained.exe --target $env:GITHUB_SHA --generate-notes
+          gh release create $env:TAG publish/framework-dependent/Memento.exe Memento-self-contained.exe --target $env:GITHUB_SHA --generate-notes

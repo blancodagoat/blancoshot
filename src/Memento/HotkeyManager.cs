@@ -1,4 +1,4 @@
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Keeps the live registrations in step with the config. Rebinding is applied and

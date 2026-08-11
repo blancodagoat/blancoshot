@@ -1,4 +1,4 @@
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Loads the embedded multi-resolution icons. They are embedded rather than shipped
@@ -21,11 +21,11 @@ internal static class TrayIcons
     /// out the cached tray instances here would leave the tray with a dead handle.
     /// </summary>
     public static Icon CreateWindowIcon() =>
-        Load("BlancoShot.app.ico", SystemInformation.IconSize);
+        Load("Memento.app.ico", SystemInformation.IconSize);
 
-    private static Icon Light => light ??= Load("BlancoShot.tray-light.ico", SystemInformation.SmallIconSize);
+    private static Icon Light => light ??= Load("Memento.tray-light.ico", SystemInformation.SmallIconSize);
 
-    private static Icon Dark => dark ??= Load("BlancoShot.tray-dark.ico", SystemInformation.SmallIconSize);
+    private static Icon Dark => dark ??= Load("Memento.tray-dark.ico", SystemInformation.SmallIconSize);
 
     private static Icon Load(string resourceName, Size size)
     {

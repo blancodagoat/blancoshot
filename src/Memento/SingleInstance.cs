@@ -1,4 +1,4 @@
-namespace BlancoShot;
+namespace Memento;
 
 /// <summary>
 /// Two instances would both try to own the same global hotkeys and one would silently
@@ -7,8 +7,8 @@ namespace BlancoShot;
 /// </summary>
 internal sealed class SingleInstance : IDisposable
 {
-    private const string MutexName = @"Local\BlancoShot.SingleInstance";
-    private const string SignalName = @"Local\BlancoShot.ShowSettings";
+    private const string MutexName = @"Local\Memento.SingleInstance";
+    private const string SignalName = @"Local\Memento.ShowSettings";
 
     private readonly Mutex mutex;
     private EventWaitHandle? signal;
@@ -71,7 +71,7 @@ internal sealed class SingleInstance : IDisposable
         })
         {
             IsBackground = true,
-            Name = "BlancoShot single-instance watcher",
+            Name = "Memento single-instance watcher",
         };
 
         watcher.Start();

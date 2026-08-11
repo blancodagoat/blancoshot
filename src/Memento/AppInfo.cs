@@ -1,9 +1,9 @@
-namespace BlancoShot;
+namespace Memento;
 
 internal static class AppInfo
 {
-    public const string Name = "BlancoShot";
-    public const string GitHubUrl = "https://github.com/blancodagoat/blancoshot";
+    public const string Name = "Memento";
+    public const string GitHubUrl = "https://github.com/blancodagoat/memento";
     public const string PortfolioUrl = "https://blancodagoat.dev/";
 
     /// <summary>
@@ -13,7 +13,7 @@ internal static class AppInfo
     public static string ExecutablePath =>
         Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, Name + ".exe");
 
-    /// <summary>%APPDATA%\BlancoShot — config plus the first-run notice marker.</summary>
+    /// <summary>%APPDATA%\Memento — config plus the first-run notice marker.</summary>
     public static string DataDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Name);
 
@@ -24,5 +24,5 @@ internal static class AppInfo
     /// so defaulting there buried captures among Windows' — see AppConfig's migration.
     /// </summary>
     public static string DefaultSaveRoot => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "BlancoShot");
+        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Memento");
 }
