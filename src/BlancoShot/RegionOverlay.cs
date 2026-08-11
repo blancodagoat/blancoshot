@@ -21,9 +21,14 @@ internal sealed class RegionOverlay : Form
     private readonly Pen accentPen = new(Theme.Accent, 1f);
     private readonly Font readoutFont = Theme.Ui(9f);
 
+    // Window and child-control rects frozen at the same instant as the desktop bitmap,
+    // topmost first, client coordinates. Hovering without dragging highlights the hit.
+    private readonly List<Native.WindowRects> windowRects;
+
     private bool dragging;
     private Point dragOrigin;
     private Point cursor;
+    private Rectangle hover;       // window under the cursor, client coordinates
     private Rectangle selection;   // client coordinates, identical to bitmap coordinates
     private Rectangle lastDirty;
 
@@ -34,6 +39,19 @@ internal sealed class RegionOverlay : Form
     {
         this.desktop = desktop;
         virtualBounds = ScreenCapture.VirtualBounds;
+
+        // Snapshotted before the overlay window exists, so the list matches the frozen
+        // desktop bitmap and never contains the overlay itself.
+        var clip = new Rectangle(Point.Empty, virtualBounds.Size);
+        windowRects = Native.VisibleWindowRects()
+            .Select(w => new Native.WindowRects(
+                Rectangle.Intersect(ToClient(w.Bounds), clip),
+                w.Children
+                    .Select(c => Rectangle.Intersect(ToClient(c), clip))
+                    .Where(c => c.Width > 0 && c.Height > 0)
+                    .ToList()))
+            .Where(w => w.Bounds.Width > 0 && w.Bounds.Height > 0)
+            .ToList();
 
         // AutoScaleMode.None keeps client coordinates identical to physical pixels, so a
         // drag on a 150% display lands exactly where the user put it.
@@ -80,6 +98,7 @@ internal sealed class RegionOverlay : Form
         ReassertBounds();
         Activate();
         Focus();
+        UpdateHover(PointToClient(Cursor.Position));
     }
 
     /// <summary>
@@ -128,9 +147,8 @@ internal sealed class RegionOverlay : Form
         dragOrigin = e.Location;
         cursor = e.Location;
 
-        // Anchored at the origin rather than Rectangle.Empty, so the first dirty union
-        // covers the drag area instead of everything back to (0, 0).
-        selection = new Rectangle(e.Location, Size.Empty);
+        // The hover highlight stays up until the drag passes the click threshold, so a
+        // press-and-release on a window never flashes down to a point selection.
         RefreshDirty();
     }
 
@@ -139,10 +157,12 @@ internal sealed class RegionOverlay : Form
         cursor = e.Location;
         if (!dragging)
         {
+            UpdateHover(e.Location);
             return;
         }
 
-        selection = Normalise(dragOrigin, e.Location);
+        var drag = Normalise(dragOrigin, e.Location);
+        selection = IsClick(drag) ? hover : drag;
         RefreshDirty();
     }
 
@@ -154,18 +174,42 @@ internal sealed class RegionOverlay : Form
         }
 
         dragging = false;
-        selection = Normalise(dragOrigin, e.Location);
+        var drag = Normalise(dragOrigin, e.Location);
 
-        // A stray click is a cancel, not a 1px capture.
-        if (selection.Width < MinimumDrag || selection.Height < MinimumDrag)
+        if (IsClick(drag))
         {
-            Cancel();
-            return;
+            // A click captures the highlighted window; over bare desktop it's a cancel.
+            if (hover.IsEmpty)
+            {
+                Cancel();
+                return;
+            }
+
+            selection = hover;
+        }
+        else
+        {
+            selection = drag;
         }
 
         SelectedRegion = ToScreen(selection);
         DialogResult = DialogResult.OK;
         Close();
+    }
+
+    private static bool IsClick(Rectangle drag) =>
+        drag.Width < MinimumDrag || drag.Height < MinimumDrag;
+
+    /// <summary>Highlights the topmost frozen window or child control under the cursor, if any.</summary>
+    private void UpdateHover(Point p)
+    {
+        var hit = Native.HitTest(windowRects, p);
+        if (hit != hover || hit != selection)
+        {
+            hover = hit;
+            selection = hit;
+            RefreshDirty();
+        }
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

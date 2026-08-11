@@ -67,6 +67,120 @@ internal static class Native
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hWnd, int attribute, ref int value, int size);
 
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmGetWindowAttribute(IntPtr hWnd, int attribute, out int value, int size);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmGetWindowAttribute(IntPtr hWnd, int attribute, out RECT rect, int size);
+
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr parent, EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+
+    /// <summary>A visible top-level window's frame bounds plus its visible child-control rects.</summary>
+    public readonly record struct WindowRects(Rectangle Bounds, IReadOnlyList<Rectangle> Children);
+
+    /// <summary>
+    /// Rects of the visible top-level windows, topmost first, as composited right now,
+    /// each with its visible child controls. Cloaked windows (UWP suspended, other
+    /// virtual desktops) are on screen as far as Win32 is concerned but invisible to the
+    /// user, so they are skipped; the extended frame bounds are used for the window
+    /// because GetWindowRect includes the invisible resize border.
+    /// </summary>
+    public static List<WindowRects> VisibleWindowRects()
+    {
+        const int DWMWA_EXTENDED_FRAME_BOUNDS = 9;
+        const int DWMWA_CLOAKED = 14;
+
+        var windows = new List<WindowRects>();
+        EnumWindows((hWnd, _) =>
+        {
+            if (!IsWindowVisible(hWnd) || IsIconic(hWnd))
+            {
+                return true;
+            }
+
+            if (DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out int cloaked, sizeof(int)) == 0 && cloaked != 0)
+            {
+                return true;
+            }
+
+            if (DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, out RECT rect, Marshal.SizeOf<RECT>()) != 0)
+            {
+                return true;
+            }
+
+            var bounds = rect.ToRectangle();
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return true;
+            }
+
+            var children = new List<Rectangle>();
+            EnumChildWindows(hWnd, (child, _) =>
+            {
+                if (IsWindowVisible(child) && GetWindowRect(child, out RECT childRect))
+                {
+                    var c = Rectangle.Intersect(childRect.ToRectangle(), bounds);
+                    if (c.Width > 0 && c.Height > 0)
+                    {
+                        children.Add(c);
+                    }
+                }
+
+                return true;
+            }, IntPtr.Zero);
+
+            windows.Add(new WindowRects(bounds, children));
+            return true;
+        }, IntPtr.Zero);
+
+        return windows;
+    }
+
+    /// <summary>
+    /// Rect to highlight for a cursor position: the topmost window containing the point,
+    /// narrowed to the smallest of its child controls that also contains it, so hovering
+    /// a pane targets the pane while the title bar still targets the whole window.
+    /// Empty when the point is over bare desktop.
+    /// </summary>
+    public static Rectangle HitTest(IEnumerable<WindowRects> windows, Point p)
+    {
+        foreach (var w in windows)
+        {
+            if (!w.Bounds.Contains(p))
+            {
+                continue;
+            }
+
+            var best = w.Bounds;
+            foreach (var c in w.Children)
+            {
+                if (c.Contains(p) && (long)c.Width * c.Height < (long)best.Width * best.Height)
+                {
+                    best = c;
+                }
+            }
+
+            return best;
+        }
+
+        return Rectangle.Empty;
+    }
+
     /// <summary>Blocks until the desktop composition that includes any pending window
     /// changes has been presented — i.e. a just-hidden window is really gone from screen.</summary>
     [DllImport("dwmapi.dll")]

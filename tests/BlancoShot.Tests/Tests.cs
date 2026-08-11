@@ -103,6 +103,22 @@ Eq("zero padded name",
     Path.GetFileName(CaptureNaming.BuildPath("f", "app", early, _ => false)),
     "app_2026-01-02_030405.png");
 
+// Native.HitTest: topmost window wins; within it, the smallest child under the point.
+var topWindow = new Native.WindowRects(new Rectangle(0, 0, 100, 100), new List<Rectangle>
+{
+    new(10, 10, 80, 80),   // client pane
+    new(20, 20, 30, 30),   // nested control inside the pane
+});
+var behindWindow = new Native.WindowRects(new Rectangle(50, 50, 200, 200), new List<Rectangle>());
+var desktopWindows = new List<Native.WindowRects> { topWindow, behindWindow };
+
+Eq("hit nested control", Native.HitTest(desktopWindows, new Point(25, 25)), new Rectangle(20, 20, 30, 30));
+Eq("hit pane outside control", Native.HitTest(desktopWindows, new Point(15, 60)), new Rectangle(10, 10, 80, 80));
+Eq("hit title bar gives window", Native.HitTest(desktopWindows, new Point(5, 5)), new Rectangle(0, 0, 100, 100));
+Eq("topmost occludes window behind", Native.HitTest(desktopWindows, new Point(60, 60)), new Rectangle(10, 10, 80, 80));
+Eq("uncovered part of window behind", Native.HitTest(desktopWindows, new Point(150, 150)), new Rectangle(50, 50, 200, 200));
+Eq("bare desktop is empty", Native.HitTest(desktopWindows, new Point(300, 300)), Rectangle.Empty);
+
 // NormaliseMonthFolders
 // Legacy "08" and "Aug" folders from earlier naming schemes fold into "08 Aug",
 // merging when both exist; current-shape and unrelated folders are untouched.
