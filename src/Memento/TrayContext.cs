@@ -105,6 +105,37 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         menu.Items.Add("Settings", null, (_, _) => OpenSettings());
         menu.Items.Add("Open screenshots folder", null, (_, _) => OpenScreenshotsFolder());
 
+        var updates = new ToolStripMenuItem("Check for updates");
+        updates.Click += async (_, _) =>
+        {
+            updates.Enabled = false;
+            try
+            {
+                var newer = await UpdateCheck.FindNewer(UpdateCheck.Current);
+                if (newer is { } found)
+                {
+                    tray.ShowBalloonTip(4000, "Update available",
+                        $"Memento v{found.Version} is out; opening the release page.", ToolTipIcon.Info);
+                    Process.Start(new ProcessStartInfo(found.Url) { UseShellExecute = true });
+                }
+                else
+                {
+                    tray.ShowBalloonTip(4000, "Up to date",
+                        $"You're on the newest release (v{UpdateCheck.Current}).", ToolTipIcon.None);
+                }
+            }
+            catch
+            {
+                tray.ShowBalloonTip(4000, "Update check failed",
+                    "Couldn't reach GitHub. Try again later.", ToolTipIcon.Warning);
+            }
+            finally
+            {
+                updates.Enabled = true;
+            }
+        };
+        menu.Items.Add(updates);
+
         // Hotkeys are not delivered while an elevated window has focus; running elevated
         // ourselves is the only bypass Windows allows.
         if (!Elevation.IsElevated)

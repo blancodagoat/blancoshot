@@ -35,4 +35,5 @@ jobs:
         run: |
           Copy-Item publish/self-contained/Memento.exe Memento-self-contained.exe
           gh release delete $env:TAG --yes --cleanup-tag
+          if ($LASTEXITCODE -ne 0) { "no previous release to replace" }
           gh release create $env:TAG publish/framework-dependent/Memento.exe Memento-self-contained.exe --target $env:GITHUB_SHA --generate-notes

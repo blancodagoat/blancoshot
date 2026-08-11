@@ -4,7 +4,7 @@
 
 **Region and display capture for Windows that stays out of your way.**
 
-Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no update checker
+Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no phone-home
 
 [![build](https://github.com/blancodagoat/memento/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/memento/actions/workflows/build.yml)
 
@@ -23,7 +23,7 @@ Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor �
 | **Print Screen** | interactive region capture |
 | **F8** | full capture of the display holding the foreground window |
 
-Both shortcuts are rebindable. The tray icon is the entry point: double-click for settings, right-click for capture actions, open/copy last capture, and the screenshots folder.
+Both shortcuts are rebindable. The tray icon is the entry point: double-click for settings, right-click for capture actions, open/copy last capture, the screenshots folder, and a click-only update check (the app never checks on its own).
 
 ## Capturing
 
