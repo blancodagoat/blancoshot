@@ -27,6 +27,7 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
     public TrayContext(SingleInstance instance)
     {
         config = AppConfig.Load();
+        StartupRegistry.Repair();
         capture = new CaptureService(config, this);
 
         hotkeyWindow = new HotkeyWindow();

@@ -11,6 +11,31 @@ internal static class StartupRegistry
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
+    /// <summary>
+    /// Call once at launch. The Run entry stores an absolute path, so moving, renaming
+    /// or re-downloading the exe silently breaks it — Windows skips missing startup
+    /// targets without a word. Rewriting the enabled entry with wherever the exe lives
+    /// right now keeps it working from any location. Also drops the pre-rebrand
+    /// BlancoShot value, which points at an exe that no longer exists.
+    /// </summary>
+    public static void Repair()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKey, writable: true);
+            key?.DeleteValue("BlancoShot", throwOnMissingValue: false);
+        }
+        catch
+        {
+            // Cosmetic cleanup only.
+        }
+
+        if (IsEnabled())
+        {
+            TrySet(true);
+        }
+    }
+
     public static bool IsEnabled()
     {
         try
