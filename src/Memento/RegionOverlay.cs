@@ -13,12 +13,17 @@ internal sealed class RegionOverlay : Form
     private const int MinimumDrag = 5;
     private const int ReadoutGap = 18;
 
+    // The loupe: an odd source size keeps the cursor's own pixel dead-center.
+    private const int ZoomFactor = 10;
+    private const int SourcePixels = 15;
+
     private readonly Bitmap desktop;
     private readonly Rectangle virtualBounds;
 
     private readonly SolidBrush dimBrush = new(Color.FromArgb(102, 0, 0, 0)); // ~40% black
     private readonly SolidBrush readoutBackBrush = new(Color.FromArgb(235, Theme.Background));
     private readonly Pen accentPen = new(Theme.Accent, 1f);
+    private readonly Pen crosshairPen = new(Color.FromArgb(110, Theme.Accent), 1f);
     private readonly Font readoutFont = Theme.Ui(9f);
 
     // Window and child-control rects frozen at the same instant as the desktop bitmap,
@@ -182,6 +187,9 @@ internal sealed class RegionOverlay : Form
         if (!dragging)
         {
             UpdateHover(e.Location);
+            // The loupe follows every motion, not just hover changes — without this
+            // it would leave ghost copies wherever the hover stayed the same.
+            RefreshDirty();
             return;
         }
 
@@ -264,7 +272,9 @@ internal sealed class RegionOverlay : Form
     private void RefreshDirty()
     {
         var dirty = Rectangle.Union(
-            Rectangle.Inflate(selection, 2, 2),
+            Rectangle.Union(
+                Rectangle.Inflate(selection, 2, 2),
+                MagnifierBounds()),
             dragging ? ReadoutBounds() : Rectangle.Empty);
 
         var invalid = lastDirty.IsEmpty ? dirty : Rectangle.Union(lastDirty, dirty);
@@ -314,24 +324,19 @@ internal sealed class RegionOverlay : Form
             g.DrawRectangle(accentPen, selection.X - 1, selection.Y - 1, selection.Width + 1, selection.Height + 1);
         }
 
+        DrawMagnifier(g);
         if (dragging)
         {
             DrawReadout(g);
         }
     }
 
-    private string ReadoutText() => $"{selection.Width} × {selection.Height}";
-
-    private Rectangle ReadoutBounds()
+    /// <summary>The loupe's on-screen box, cursor-adjacent, flipped away from edges.</summary>
+    private Rectangle MagnifierBounds()
     {
-        // TextRenderer measures without a Graphics, which matters because this runs on
-        // every mouse move; CreateGraphics per motion event is not free.
-        var size = TextRenderer.MeasureText(ReadoutText(), readoutFont);
+        int size = SourcePixels * ZoomFactor;
+        var box = new Rectangle(cursor.X + ReadoutGap, cursor.Y + ReadoutGap, size, size);
 
-        var box = new Rectangle(
-            cursor.X + ReadoutGap, cursor.Y + ReadoutGap, size.Width + 16, size.Height + 8);
-
-        // Keep the readout on-screen near the right and bottom edges.
         if (box.Right > ClientRectangle.Right - 4)
         {
             box.X = cursor.X - ReadoutGap - box.Width;
@@ -344,6 +349,64 @@ internal sealed class RegionOverlay : Form
 
         box.X = Math.Max(ClientRectangle.Left + 4, box.X);
         box.Y = Math.Max(ClientRectangle.Top + 4, box.Y);
+        return box;
+    }
+
+    /// <summary>
+    /// ShareX-style zoom loupe: the pixels around the cursor at 10×, from the same
+    /// frozen bitmap the capture is cut from, so what the loupe shows is exactly what
+    /// a selection edge lands on. NearestNeighbor is already set on the Graphics.
+    /// </summary>
+    private void DrawMagnifier(Graphics g)
+    {
+        var box = MagnifierBounds();
+        g.FillRectangle(Brushes.Black, box);
+
+        // Near screen edges part of the source lies outside the bitmap; blit only the
+        // available part into the matching offset of the box, black fills the rest.
+        var src = new Rectangle(
+            cursor.X - SourcePixels / 2, cursor.Y - SourcePixels / 2, SourcePixels, SourcePixels);
+        var available = Rectangle.Intersect(src, new Rectangle(Point.Empty, desktop.Size));
+        if (available.Width > 0 && available.Height > 0)
+        {
+            var dest = new Rectangle(
+                box.X + (available.X - src.X) * ZoomFactor,
+                box.Y + (available.Y - src.Y) * ZoomFactor,
+                available.Width * ZoomFactor,
+                available.Height * ZoomFactor);
+            g.DrawImage(desktop, dest, available, GraphicsUnit.Pixel);
+        }
+
+        // Crosshair through the cursor's pixel, with the pixel itself outlined.
+        int centerX = box.X + (SourcePixels / 2) * ZoomFactor;
+        int centerY = box.Y + (SourcePixels / 2) * ZoomFactor;
+        int mid = ZoomFactor / 2;
+        g.DrawLine(crosshairPen, box.X, centerY + mid, box.Right - 1, centerY + mid);
+        g.DrawLine(crosshairPen, centerX + mid, box.Y, centerX + mid, box.Bottom - 1);
+        g.DrawRectangle(accentPen, centerX, centerY, ZoomFactor - 1, ZoomFactor - 1);
+
+        g.DrawRectangle(accentPen, box.X, box.Y, box.Width - 1, box.Height - 1);
+    }
+
+    private string ReadoutText() => $"{selection.Width} × {selection.Height}";
+
+    private Rectangle ReadoutBounds()
+    {
+        // TextRenderer measures without a Graphics, which matters because this runs on
+        // every mouse move; CreateGraphics per motion event is not free.
+        var size = TextRenderer.MeasureText(ReadoutText(), readoutFont);
+
+        // Docked under the loupe (above it near the bottom edge), so the two never
+        // fight for the same cursor-adjacent spot.
+        var mag = MagnifierBounds();
+        var box = new Rectangle(mag.X, mag.Bottom + 4, size.Width + 16, size.Height + 8);
+        if (box.Bottom > ClientRectangle.Bottom - 4)
+        {
+            box.Y = mag.Y - box.Height - 4;
+        }
+
+        box.X = Math.Min(box.X, ClientRectangle.Right - 4 - box.Width);
+        box.X = Math.Max(ClientRectangle.Left + 4, box.X);
         return box;
     }
 
@@ -366,6 +429,7 @@ internal sealed class RegionOverlay : Form
             dimBrush.Dispose();
             readoutBackBrush.Dispose();
             accentPen.Dispose();
+            crosshairPen.Dispose();
             readoutFont.Dispose();
         }
 
