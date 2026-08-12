@@ -49,6 +49,17 @@ internal sealed class CaptureService
         busy = true;
         try
         {
+            // A fullscreen D3D game never shows the overlay: it opens invisibly behind
+            // the game, and being modal it then swallows every hotkey until a blind
+            // Escape. Mid-game the useful answer is the game itself — capture its
+            // display directly, like the full-display hotkey would.
+            if (Native.FullScreenGameActive())
+            {
+                using var screen = ScreenCapture.CaptureRect(ScreenCapture.ActiveDisplayBounds());
+                Deliver(screen, app, CaptureKind.Display);
+                return;
+            }
+
             using var desktop = ScreenCapture.CaptureVirtualDesktop();
             using var overlay = new RegionOverlay(desktop);
             if (overlay.ShowDialog() != DialogResult.OK)

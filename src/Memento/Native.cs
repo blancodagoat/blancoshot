@@ -261,4 +261,10 @@ internal static class Native
             or NotificationState.RunningD3dFullScreen
             or NotificationState.PresentationMode
             or NotificationState.QuietTime;
+
+    /// <summary>A D3D fullscreen app owns the display: the region overlay would open
+    /// invisibly behind it and its modal loop would eat every hotkey after that.</summary>
+    public static bool FullScreenGameActive() =>
+        SHQueryUserNotificationState(out var state) == 0
+        && state is NotificationState.RunningD3dFullScreen;
 }

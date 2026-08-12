@@ -99,6 +99,30 @@ internal sealed class RegionOverlay : Form
         Activate();
         Focus();
         UpdateHover(PointToClient(Cursor.Position));
+
+        // If the foreground never arrived (a fullscreen game held it), the overlay is
+        // invisible but modal — and would eat every hotkey until a blind Escape.
+        BeginInvoke(() =>
+        {
+            if (DialogResult == DialogResult.None && Native.GetForegroundWindow() != Handle)
+            {
+                Cancel();
+            }
+        });
+    }
+
+    protected override void OnDeactivate(EventArgs e)
+    {
+        base.OnDeactivate(e);
+        // Losing foreground mid-selection means something (a game reasserting
+        // fullscreen, a popup) is now on top of an overlay the user can't see.
+        // Cancel is right in every such case; pressing the hotkey again is cheap.
+        // Deactivate also fires while closing after a commit — the result guard
+        // keeps a successful OK from being rewritten to Cancel on the way out.
+        if (DialogResult == DialogResult.None)
+        {
+            Cancel();
+        }
     }
 
     /// <summary>
