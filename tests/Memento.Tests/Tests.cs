@@ -128,6 +128,11 @@ Eq("topmost occludes window behind", Native.HitTest(desktopWindows, new Point(60
 Eq("uncovered part of window behind", Native.HitTest(desktopWindows, new Point(150, 150)), new Rectangle(50, 50, 200, 200));
 Eq("bare desktop is empty", Native.HitTest(desktopWindows, new Point(300, 300)), Rectangle.Empty);
 
+// Download-copy suffix stripping ("Memento (2).exe" from browser re-downloads).
+Eq("copy suffix stripped", SelfTidy.StripCopySuffix("Memento (3)"), "Memento");
+Eq("clean name untouched", SelfTidy.StripCopySuffix("Memento"), "Memento");
+Eq("inner parentheses survive", SelfTidy.StripCopySuffix("My (old) App (2)"), "My (old) App");
+
 // NormaliseMonthFolders
 // Legacy "08" and "Aug" folders from earlier naming schemes fold into "08 Aug",
 // merging when both exist; current-shape and unrelated folders are untouched.

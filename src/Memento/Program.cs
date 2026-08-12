@@ -12,6 +12,8 @@ internal static class Program
             return;
         }
 
+        SelfTidy.Run();
+
         // Applies the PerMonitorV2 mode declared in the csproj; the manifest already put
         // the process in that mode before any of this ran.
         ApplicationConfiguration.Initialize();
