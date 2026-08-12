@@ -16,7 +16,7 @@ Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor �
 
 ## Quick start
 
-1. Download `Memento.exe` from the [latest release](https://github.com/blancodagoat/memento/releases/latest). It is under 1 MB; if the .NET 10 Desktop Runtime is missing, Windows shows a dialog that links straight to the installer. Prefer zero installs? Take `Memento-self-contained.exe` instead.
+1. Download `Memento.exe` from the [latest release](https://github.com/blancodagoat/memento/releases/latest). It is under 1 MB; if the .NET 10 Desktop Runtime is missing, Windows shows a dialog that links straight to the installer. Prefer zero installs? Take `Memento-self-contained.exe` instead. Scoop users: `scoop bucket add blancodagoat https://github.com/blancodagoat/scoop-bucket` then `scoop install memento`.
 2. Run it. An icon appears in the tray; there is no main window.
 3. Press **Print Screen**.
 
