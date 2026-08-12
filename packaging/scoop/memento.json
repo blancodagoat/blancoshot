@@ -4,7 +4,7 @@
     "homepage": "https://github.com/blancodagoat/memento",
     "license": "MIT",
     "url": "https://github.com/blancodagoat/memento/releases/download/v1.3.0/Memento.exe",
-    "hash": "FILL-AFTER-FIRST-TAGGED-RELEASE (scoop hash Memento.exe)",
+    "hash": "a58a48e0bba8095040123a410d39fb65e90e74d8d7fb5f516c832da0302e8a83",
     "bin": "Memento.exe",
     "shortcuts": [
         [
