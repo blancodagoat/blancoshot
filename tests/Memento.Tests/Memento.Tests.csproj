@@ -12,11 +12,19 @@
 
   <ItemGroup>
     <Compile Include="Tests.cs" />
+    <Compile Include="SmokeTest.cs" />
     <!-- The production sources under test, compiled in directly rather than duplicated. -->
     <Compile Include="..\..\src\Memento\Native.cs" />
     <Compile Include="..\..\src\Memento\HotkeyBinding.cs" />
     <Compile Include="..\..\src\Memento\SourceApp.cs" />
     <Compile Include="..\..\src\Memento\CaptureNaming.cs" />
+    <Compile Include="..\..\src\Memento\IssueReport.cs" />
+    <Compile Include="..\..\src\Memento\UpdateCheck.cs" />
+    <!-- Extra sources the smoke mode drives live; harmless in the headless run. -->
+    <Compile Include="..\..\src\Memento\AppInfo.cs" />
+    <Compile Include="..\..\src\Memento\Theme.cs" />
+    <Compile Include="..\..\src\Memento\ScreenCapture.cs" />
+    <Compile Include="..\..\src\Memento\RegionOverlay.cs" />
   </ItemGroup>
 
 </Project>

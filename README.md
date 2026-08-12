@@ -29,7 +29,7 @@ Both shortcuts are rebindable. The tray icon is the entry point: double-click fo
 
 In region capture, the window (or pane) under the cursor highlights itself. Click to take it as-is, or drag to select freehand.
 
-Every capture is saved as a PNG and copied to the clipboard. If the save fails, the clipboard copy still happens and the error is left in the tray tooltip.
+Every capture is saved as a PNG and copied to the clipboard. If the save fails, the clipboard copy still happens and the error is left in the tray tooltip; a "Report last error…" entry also appears in the tray menu, which opens a prefilled GitHub issue in your browser (paths scrubbed) for you to review and submit — the app itself sends nothing.
 
 Shots land in `%USERPROFILE%\Pictures\Memento` by default, nested by year and month:
 
@@ -102,7 +102,8 @@ Memento turns that setting off itself: it writes the same `HKCU\Control Panel\Ke
 ## Tests
 
 ```
-dotnet run --project tests/Memento.Tests
+dotnet run --project tests/Memento.Tests            # headless suite
+dotnet run --project tests/Memento.Tests -- smoke   # + live capture geometry on the real desktop
 ```
 
 53 assertions over the logic that does not need a live desktop: hotkey parsing and formatting (a round-trip failure here would quietly reset the user's shortcuts on every launch), source-app name sanitising, output path construction including same-second collision suffixes, window/control hit-testing for hover capture, and the legacy month-folder migration. The project compiles the production source files in directly rather than copying them.
@@ -111,4 +112,4 @@ dotnet run --project tests/Memento.Tests
 
 Exercised on Windows 11 hardware: capture, clipboard hand-off, PNG output, the tray icon and menu, the settings window, hotkey rebinding, and the capture card.
 
-Still outstanding: the mixed-DPI pass (150% primary + 100% secondary), checking that captures are pixel-exact and that region selection lands where the mouse was dragged on both monitors. The overlay deliberately swallows `WM_DPICHANGED` and re-asserts its bounds, which is the part most worth confirming.
+Still outstanding: the mixed-DPI pass (150% primary + 100% secondary), checking that captures are pixel-exact and that region selection lands where the mouse was dragged on both monitors. The overlay deliberately swallows `WM_DPICHANGED` and re-asserts its bounds, which is the part most worth confirming. The check itself is automated — `dotnet run --project tests/Memento.Tests -- smoke` verifies pixel-exact capture and a real synthetic drag on every attached display, and drags across the display boundary when there are two — but it has only been run on a single-DPI machine so far; running it once on a mixed-DPI pair closes this item.

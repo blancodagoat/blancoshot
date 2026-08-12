@@ -105,6 +105,18 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         menu.Items.Add("Settings", null, (_, _) => OpenSettings());
         menu.Items.Add("Open screenshots folder", null, (_, _) => OpenScreenshotsFolder());
 
+        // Hidden until something actually fails; clicking opens a prefilled GitHub issue
+        // in the browser, where the user reviews and submits it — the app sends nothing.
+        reportItem = new ToolStripMenuItem("Report last error…", null, (_, _) =>
+        {
+            if (lastError is { } error)
+            {
+                IssueReport.Open(error);
+            }
+        })
+        { Visible = false };
+        menu.Items.Add(reportItem);
+
         var updates = new ToolStripMenuItem("Check for updates");
         updates.Click += async (_, _) =>
         {
@@ -214,8 +226,17 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         Toast.ShowCapture(kind, path, thumbnail);
     }
 
+    private string? lastError;
+    private ToolStripMenuItem? reportItem;
+
     public void Failed(string message)
     {
+        lastError = message;
+        if (reportItem is not null)
+        {
+            reportItem.Visible = true;
+        }
+
         // The tooltip keeps the error visible after the toast has gone.
         tray.Text = Truncate($"{AppInfo.Name} — {message}");
 

@@ -3,11 +3,20 @@
 // The real source files are compiled into this project, not copied.
 //
 //   dotnet run --project tests/Memento.Tests
+//   dotnet run --project tests/Memento.Tests -- smoke   # + live capture geometry, see SmokeTest.cs
 //
 // Exit code is 0 when everything passes.
 
 
 using Memento;
+using Memento.Tests;
+
+bool smoke = args.Contains("smoke");
+if (smoke)
+{
+    // Before any handle exists, so coordinates are physical pixels like the app's manifest makes them.
+    Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+}
 
 int failed = 0, passed = 0;
 
@@ -145,6 +154,22 @@ try
 finally
 {
     try { Directory.Delete(tempRoot, recursive: true); } catch { }
+}
+
+// Issue reporting: the prefilled new-issue URL must scrub identity from the message.
+{
+    var url = IssueReport.BuildUrl(
+        @"Could not save to C:\Users\casey\Pictures. Access denied.",
+        "v1.0 · Windows 10.0.26200", @"C:\Users\casey", "casey");
+    Check("issue url targets the repo", url.StartsWith(AppInfo.GitHubUrl + "/issues/new?title="));
+    Check("issue url carries the error", url.Contains(Uri.EscapeDataString("Access denied")));
+    Check("issue url leaks no username", !url.Contains("casey", StringComparison.OrdinalIgnoreCase));
+}
+
+if (smoke)
+{
+    Console.WriteLine("\nsmoke: live-desktop capture geometry");
+    SmokeTest.Run(Check);
 }
 
 Console.WriteLine($"\n{passed} passed, {failed} failed");
