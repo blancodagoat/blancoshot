@@ -4,7 +4,7 @@
 
 **Region and display capture for Windows that stays out of your way.**
 
-Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no phone-home
+Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor · no telemetry · no phone-home (unless you opt in to update notifications)
 
 [![build](https://github.com/blancodagoat/memento/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/memento/actions/workflows/build.yml)
 

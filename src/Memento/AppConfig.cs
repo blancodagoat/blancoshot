@@ -9,6 +9,7 @@ internal sealed class ConfigFile
     public string? RegionHotkey { get; set; }
     public string? FullDisplayHotkey { get; set; }
     public string? SaveRoot { get; set; }
+    public bool? UpdateNotify { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
@@ -24,6 +25,9 @@ internal sealed class AppConfig
     public HotkeyBinding FullDisplayHotkey { get; set; } = HotkeyBinding.DefaultFullDisplay;
 
     public string SaveRoot { get; set; } = AppInfo.DefaultSaveRoot;
+
+    /// <summary>Opt-in background update notifications. Off = never phones home.</summary>
+    public bool UpdateNotify { get; set; }
 
     /// <summary>
     /// Never throws. Anything unreadable or malformed collapses to defaults, and the
@@ -70,6 +74,9 @@ internal sealed class AppConfig
                     {
                         rewrite = true;
                     }
+
+                    config.UpdateNotify = file.UpdateNotify ?? false;
+                    rewrite |= file.UpdateNotify is null;
                 }
             }
         }
@@ -97,6 +104,7 @@ internal sealed class AppConfig
                 RegionHotkey = RegionHotkey.ToString(),
                 FullDisplayHotkey = FullDisplayHotkey.ToString(),
                 SaveRoot = SaveRoot,
+                UpdateNotify = UpdateNotify,
             };
             File.WriteAllText(
                 AppInfo.ConfigPath,

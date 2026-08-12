@@ -56,6 +56,17 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
             ContextMenuStrip = BuildMenu(),
         };
         tray.DoubleClick += (_, _) => OpenSettings();
+        tray.BalloonTipClicked += (_, _) =>
+        {
+            if (pendingUpdate is { } update)
+            {
+                pendingUpdate = null;
+                update();
+            }
+        };
+
+        updateNotifier = new UpdateNotifier(
+            () => config.UpdateNotify, (version, url) => AnnounceUpdate(version, url));
 
         instance.ListenForSignals(hotkeyWindow.Handle);
 
@@ -126,9 +137,7 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
                 var newer = await UpdateCheck.FindNewer(UpdateCheck.Current);
                 if (newer is { } found)
                 {
-                    tray.ShowBalloonTip(4000, "Update available",
-                        $"Memento v{found.Version} is out; opening the release page.", ToolTipIcon.Info);
-                    Process.Start(new ProcessStartInfo(found.Url) { UseShellExecute = true });
+                    AnnounceUpdate(found.Version, found.Url);
                 }
                 else
                 {
@@ -147,6 +156,20 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
             }
         };
         menu.Items.Add(updates);
+
+        var notify = new ToolStripMenuItem("Notify about new versions")
+        {
+            Checked = config.UpdateNotify,
+            ToolTipText = "Checks GitHub a few times a day, which means GitHub sees your IP. "
+                + "Off (the default), the app never phones home.",
+        };
+        notify.Click += (_, _) =>
+        {
+            config.UpdateNotify = !config.UpdateNotify;
+            notify.Checked = config.UpdateNotify;
+            config.Save();
+        };
+        menu.Items.Add(notify);
 
         // Hotkeys are not delivered while an elevated window has focus; running elevated
         // ourselves is the only bypass Windows allows.
@@ -228,6 +251,34 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
 
     private string? lastError;
     private ToolStripMenuItem? reportItem;
+    private readonly UpdateNotifier updateNotifier;
+    private Action? pendingUpdate;
+
+    /// <summary>One update balloon, aimed at how this copy is actually managed: a scoop
+    /// install must update through scoop (a raw exe would orphan the package), and a
+    /// loose exe gets the download link plus a nudge toward being properly installed.</summary>
+    private void AnnounceUpdate(Version version, string url)
+    {
+        if (ScoopInstall.Active)
+        {
+            pendingUpdate = () =>
+            {
+                Clipboard.SetText(ScoopInstall.UpdateCommand);
+                tray.ShowBalloonTip(4000, "Copied",
+                    $"Paste \"{ScoopInstall.UpdateCommand}\" into a terminal.", ToolTipIcon.None);
+            };
+            tray.ShowBalloonTip(4000, "Update available",
+                $"{AppInfo.Name} v{version} is out — click to copy \"{ScoopInstall.UpdateCommand}\".",
+                ToolTipIcon.Info);
+        }
+        else
+        {
+            pendingUpdate = () => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            tray.ShowBalloonTip(4000, "Update available",
+                $"{AppInfo.Name} v{version} is out — click to download. Tip: \"scoop install {AppInfo.Name.ToLowerInvariant()}\" makes updates one command.",
+                ToolTipIcon.Info);
+        }
+    }
 
     public void Failed(string message)
     {
@@ -324,6 +375,7 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         {
             // The SingleInstance handle is owned by Main and released there.
             Application.Idle -= OnFirstIdle;
+            updateNotifier.Dispose();
             tray.Visible = false;
             tray.Dispose();
             toast?.Dispose();
