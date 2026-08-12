@@ -24,6 +24,7 @@ internal sealed class RegionOverlay : Form
     private readonly SolidBrush readoutBackBrush = new(Color.FromArgb(235, Theme.Background));
     private readonly Pen accentPen = new(Theme.Accent, 1f);
     private readonly Pen crosshairPen = new(Color.FromArgb(110, Theme.Accent), 1f);
+    private readonly SolidBrush checkerBrush = new(Color.FromArgb(26, 128, 128, 128));
     private readonly Font readoutFont = Theme.Ui(9f);
 
     // Window and child-control rects frozen at the same instant as the desktop bitmap,
@@ -377,6 +378,19 @@ internal sealed class RegionOverlay : Form
             g.DrawImage(desktop, dest, available, GraphicsUnit.Pixel);
         }
 
+        // Checkerboard over the zoom: a faint tint on alternating cells makes every
+        // source pixel individually countable — mid-gray shows against both light and
+        // dark content, where grid lines would vanish into same-colored pixels.
+        for (int row = 0; row < SourcePixels; row++)
+        {
+            for (int col = (row & 1); col < SourcePixels; col += 2)
+            {
+                g.FillRectangle(
+                    checkerBrush,
+                    box.X + col * ZoomFactor, box.Y + row * ZoomFactor, ZoomFactor, ZoomFactor);
+            }
+        }
+
         // Crosshair through the cursor's pixel, with the pixel itself outlined.
         int centerX = box.X + (SourcePixels / 2) * ZoomFactor;
         int centerY = box.Y + (SourcePixels / 2) * ZoomFactor;
@@ -430,6 +444,7 @@ internal sealed class RegionOverlay : Form
             readoutBackBrush.Dispose();
             accentPen.Dispose();
             crosshairPen.Dispose();
+            checkerBrush.Dispose();
             readoutFont.Dispose();
         }
 
