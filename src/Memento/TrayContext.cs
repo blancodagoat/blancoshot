@@ -263,12 +263,11 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         {
             pendingUpdate = () =>
             {
-                Clipboard.SetText(ScoopInstall.UpdateCommand);
-                tray.ShowBalloonTip(4000, "Copied",
-                    $"Paste \"{ScoopInstall.UpdateCommand}\" into a terminal.", ToolTipIcon.None);
+                ScoopInstall.RunUpdateAndRelaunch();
+                Quit();
             };
             tray.ShowBalloonTip(4000, "Update available",
-                $"{AppInfo.Name} v{version} is out — click to copy \"{ScoopInstall.UpdateCommand}\".",
+                $"{AppInfo.Name} v{version} is out — click to update and restart now.",
                 ToolTipIcon.Info);
         }
         else
