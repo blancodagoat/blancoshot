@@ -8,6 +8,8 @@ Tray-only · ~8 MB of RAM · under 1 MB to download · no uploads · no editor �
 
 [![build](https://github.com/blancodagoat/memento/actions/workflows/build.yml/badge.svg)](https://github.com/blancodagoat/memento/actions/workflows/build.yml)
 
+<img src="assets/screenshot.png" width="760" alt="Region capture in progress: the hovered window is highlighted, the rest of the desktop dimmed">
+
 </div>
 
 ---

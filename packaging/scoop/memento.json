@@ -1,0 +1,19 @@
+{
+    "version": "1.0.0",
+    "description": "Minimal screenshot tool that runs from the tray: region and display capture, PNG plus clipboard, ~8 MB idle, no telemetry.",
+    "homepage": "https://github.com/blancodagoat/memento",
+    "license": "MIT",
+    "url": "https://github.com/blancodagoat/memento/releases/download/v1.0.0/Memento.exe",
+    "hash": "FILL-AFTER-FIRST-TAGGED-RELEASE (scoop hash Memento.exe)",
+    "bin": "Memento.exe",
+    "shortcuts": [
+        [
+            "Memento.exe",
+            "Memento"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "url": "https://github.com/blancodagoat/memento/releases/download/v$version/Memento.exe"
+    }
+}
