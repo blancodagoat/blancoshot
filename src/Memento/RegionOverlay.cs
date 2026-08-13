@@ -23,8 +23,7 @@ internal sealed class RegionOverlay : Form
     private readonly SolidBrush dimBrush = new(Color.FromArgb(102, 0, 0, 0)); // ~40% black
     private readonly SolidBrush readoutBackBrush = new(Color.FromArgb(235, Theme.Background));
     private readonly Pen accentPen = new(Theme.Accent, 1f);
-    private readonly Pen crosshairPen = new(Color.FromArgb(110, Theme.Accent), 1f);
-    private readonly SolidBrush cellBrush = new(Color.Black);
+    private readonly Pen gridPen = new(Color.FromArgb(85, 255, 255, 255), 1f);
     private readonly Font readoutFont = Theme.Ui(9f);
 
     // Window and child-control rects frozen at the same instant as the desktop bitmap,
@@ -89,7 +88,7 @@ internal sealed class RegionOverlay : Form
             region = new Rectangle(0, 0, 1, 1);
         }
 
-        return desktop.Clone(region, PixelFormat.Format32bppArgb);
+        return desktop.Clone(region, PixelFormat.Format24bppRgb);
     }
 
     private Rectangle ToClient(Rectangle screenRect) =>
@@ -362,38 +361,57 @@ internal sealed class RegionOverlay : Form
     {
         var box = MagnifierBounds();
 
-        // Every magnified pixel is painted as its own filled cell, inset by one pixel
-        // inside a white panel — the white showing through IS the thin grid around the
-        // pixels, and per-cell fills make the alignment exact by construction.
-        // (DrawImage's pixel-offset semantics shifted the upscaled blit half a cell
-        // against the overlay, which misaligned the crosshair and center square.)
-        g.FillRectangle(Brushes.White, box);
-        int half = SourcePixels / 2;
-        for (int row = 0; row < SourcePixels; row++)
+        // Circular loupe: the ring clips edge cells along a smooth arc instead of the
+        // square border slicing through half-pixels, which read as unfinished.
+        using var circle = new GraphicsPath();
+        circle.AddEllipse(box);
+        var previousClip = g.Clip;
+        g.SetClip(circle);
+
+        g.FillRectangle(Brushes.Black, box);
+
+        // ShareX's exact zoom recipe: NearestNeighbor + PixelOffsetMode.Half, so
+        // source pixel n lands exactly on [n·zoom, (n+1)·zoom) and the grid below
+        // sits on true pixel boundaries.
+        var src = new Rectangle(
+            cursor.X - SourcePixels / 2, cursor.Y - SourcePixels / 2, SourcePixels, SourcePixels);
+        var available = Rectangle.Intersect(src, new Rectangle(Point.Empty, desktop.Size));
+        if (available.Width > 0 && available.Height > 0)
         {
-            for (int col = 0; col < SourcePixels; col++)
-            {
-                int sx = cursor.X - half + col;
-                int sy = cursor.Y - half + row;
-                cellBrush.Color = sx >= 0 && sy >= 0 && sx < desktop.Width && sy < desktop.Height
-                    ? desktop.GetPixel(sx, sy)
-                    : Color.Black;
-                g.FillRectangle(
-                    cellBrush,
-                    box.X + col * ZoomFactor + 1, box.Y + row * ZoomFactor + 1,
-                    ZoomFactor - 1, ZoomFactor - 1);
-            }
+            var dest = new Rectangle(
+                box.X + (available.X - src.X) * ZoomFactor,
+                box.Y + (available.Y - src.Y) * ZoomFactor,
+                available.Width * ZoomFactor,
+                available.Height * ZoomFactor);
+            g.DrawImage(desktop, dest, available, GraphicsUnit.Pixel);
         }
 
-        // Crosshair through the cursor's pixel, with the pixel itself outlined.
-        int centerX = box.X + half * ZoomFactor;
-        int centerY = box.Y + half * ZoomFactor;
-        int mid = ZoomFactor / 2;
-        g.DrawLine(crosshairPen, box.X, centerY + mid, box.Right - 1, centerY + mid);
-        g.DrawLine(crosshairPen, centerX + mid, box.Y, centerX + mid, box.Bottom - 1);
-        g.DrawRectangle(accentPen, centerX, centerY, ZoomFactor, ZoomFactor);
+        // Hairline grid on every cell boundary — translucent, so it reads on any
+        // content without burying the image the way solid lines did.
+        g.PixelOffsetMode = PixelOffsetMode.None;
+        for (int i = 1; i < SourcePixels; i++)
+        {
+            g.DrawLine(gridPen, box.X + i * ZoomFactor, box.Y, box.X + i * ZoomFactor, box.Bottom - 1);
+            g.DrawLine(gridPen, box.X, box.Y + i * ZoomFactor, box.Right - 1, box.Y + i * ZoomFactor);
+        }
 
-        g.DrawRectangle(accentPen, box.X, box.Y, box.Width - 1, box.Height - 1);
+        // ShareX's center marker: black outside, white inside, wrapping the cursor's
+        // pixel — visible on any background, no crosshair lines crossing the image.
+        int centerX = box.X + (SourcePixels / 2) * ZoomFactor;
+        int centerY = box.Y + (SourcePixels / 2) * ZoomFactor;
+        g.DrawRectangle(Pens.Black, centerX - 1, centerY - 1, ZoomFactor + 1, ZoomFactor + 1);
+        g.DrawRectangle(Pens.White, centerX, centerY, ZoomFactor - 1, ZoomFactor - 1);
+
+        g.Clip = previousClip;
+        previousClip.Dispose();
+
+        // Double ring, antialiased, so the loupe separates cleanly from anything.
+        var previousSmoothing = g.SmoothingMode;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.DrawEllipse(Pens.White, box.X + 1, box.Y + 1, box.Width - 3, box.Height - 3);
+        g.DrawEllipse(Pens.Black, box.X, box.Y, box.Width - 1, box.Height - 1);
+        g.SmoothingMode = previousSmoothing;
+        g.PixelOffsetMode = PixelOffsetMode.Half;
     }
 
     private string ReadoutText() => $"{selection.Width} × {selection.Height}";
@@ -437,8 +455,7 @@ internal sealed class RegionOverlay : Form
             dimBrush.Dispose();
             readoutBackBrush.Dispose();
             accentPen.Dispose();
-            crosshairPen.Dispose();
-            cellBrush.Dispose();
+            gridPen.Dispose();
             readoutFont.Dispose();
         }
 
