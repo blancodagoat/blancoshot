@@ -24,7 +24,7 @@ internal sealed class RegionOverlay : Form
     private readonly SolidBrush readoutBackBrush = new(Color.FromArgb(235, Theme.Background));
     private readonly Pen accentPen = new(Theme.Accent, 1f);
     private readonly Pen crosshairPen = new(Color.FromArgb(110, Theme.Accent), 1f);
-    private readonly SolidBrush checkerBrush = new(Color.FromArgb(26, 128, 128, 128));
+    private readonly SolidBrush cellBrush = new(Color.Black);
     private readonly Font readoutFont = Theme.Ui(9f);
 
     // Window and child-control rects frozen at the same instant as the desktop bitmap,
@@ -361,43 +361,37 @@ internal sealed class RegionOverlay : Form
     private void DrawMagnifier(Graphics g)
     {
         var box = MagnifierBounds();
-        g.FillRectangle(Brushes.Black, box);
 
-        // Near screen edges part of the source lies outside the bitmap; blit only the
-        // available part into the matching offset of the box, black fills the rest.
-        var src = new Rectangle(
-            cursor.X - SourcePixels / 2, cursor.Y - SourcePixels / 2, SourcePixels, SourcePixels);
-        var available = Rectangle.Intersect(src, new Rectangle(Point.Empty, desktop.Size));
-        if (available.Width > 0 && available.Height > 0)
-        {
-            var dest = new Rectangle(
-                box.X + (available.X - src.X) * ZoomFactor,
-                box.Y + (available.Y - src.Y) * ZoomFactor,
-                available.Width * ZoomFactor,
-                available.Height * ZoomFactor);
-            g.DrawImage(desktop, dest, available, GraphicsUnit.Pixel);
-        }
-
-        // Checkerboard over the zoom: a faint tint on alternating cells makes every
-        // source pixel individually countable — mid-gray shows against both light and
-        // dark content, where grid lines would vanish into same-colored pixels.
+        // Every magnified pixel is painted as its own filled cell, inset by one pixel
+        // inside a white panel — the white showing through IS the thin grid around the
+        // pixels, and per-cell fills make the alignment exact by construction.
+        // (DrawImage's pixel-offset semantics shifted the upscaled blit half a cell
+        // against the overlay, which misaligned the crosshair and center square.)
+        g.FillRectangle(Brushes.White, box);
+        int half = SourcePixels / 2;
         for (int row = 0; row < SourcePixels; row++)
         {
-            for (int col = (row & 1); col < SourcePixels; col += 2)
+            for (int col = 0; col < SourcePixels; col++)
             {
+                int sx = cursor.X - half + col;
+                int sy = cursor.Y - half + row;
+                cellBrush.Color = sx >= 0 && sy >= 0 && sx < desktop.Width && sy < desktop.Height
+                    ? desktop.GetPixel(sx, sy)
+                    : Color.Black;
                 g.FillRectangle(
-                    checkerBrush,
-                    box.X + col * ZoomFactor, box.Y + row * ZoomFactor, ZoomFactor, ZoomFactor);
+                    cellBrush,
+                    box.X + col * ZoomFactor + 1, box.Y + row * ZoomFactor + 1,
+                    ZoomFactor - 1, ZoomFactor - 1);
             }
         }
 
         // Crosshair through the cursor's pixel, with the pixel itself outlined.
-        int centerX = box.X + (SourcePixels / 2) * ZoomFactor;
-        int centerY = box.Y + (SourcePixels / 2) * ZoomFactor;
+        int centerX = box.X + half * ZoomFactor;
+        int centerY = box.Y + half * ZoomFactor;
         int mid = ZoomFactor / 2;
         g.DrawLine(crosshairPen, box.X, centerY + mid, box.Right - 1, centerY + mid);
         g.DrawLine(crosshairPen, centerX + mid, box.Y, centerX + mid, box.Bottom - 1);
-        g.DrawRectangle(accentPen, centerX, centerY, ZoomFactor - 1, ZoomFactor - 1);
+        g.DrawRectangle(accentPen, centerX, centerY, ZoomFactor, ZoomFactor);
 
         g.DrawRectangle(accentPen, box.X, box.Y, box.Width - 1, box.Height - 1);
     }
@@ -444,7 +438,7 @@ internal sealed class RegionOverlay : Form
             readoutBackBrush.Dispose();
             accentPen.Dispose();
             crosshairPen.Dispose();
-            checkerBrush.Dispose();
+            cellBrush.Dispose();
             readoutFont.Dispose();
         }
 
