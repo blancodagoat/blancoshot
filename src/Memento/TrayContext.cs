@@ -33,6 +33,7 @@ internal sealed class TrayContext : ApplicationContext, ICaptureNotifier
         hotkeyWindow = new HotkeyWindow();
         hotkeyWindow.HotkeyPressed += OnHotkey;
         hotkeyWindow.ShowSettingsRequested += OpenSettings;
+        hotkeyWindow.QuitRequested += Quit;
 
         hotkeys = new HotkeyManager(hotkeyWindow, config);
 
